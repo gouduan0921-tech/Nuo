@@ -1,0 +1,6 @@
+﻿<Solution>
+  <Project Path="NuoBrew.Editor.csproj" />
+  <Project Path="NuoBrew.ContentLink.csproj" />
+  <Project Path="NuoBrew.Domain.csproj" />
+  <Project Path="NuoBrew.Application.csproj" />
+</Solution>

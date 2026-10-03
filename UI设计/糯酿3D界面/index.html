@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>糯酿 · 水乡微光</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<main id="app">
+  <div class="world" id="world"><img id="scene" src="素材/酒坊全院.png" alt="江南水乡酒坊院，北田南柜，木廊串起酿酒工位"><div class="world-shade"></div><div id="world-points"></div><div class="rice-state" id="rice-state" hidden></div></div>
+  <header class="topbar"><button class="brand" data-action="home" aria-label="回到酒坊全院"><span class="brand-seal">酿</span><span><b>糯酿</b><small>一斗米，一院酒香</small></span><span class="red-seal">糯</span></button><div class="dayplate" id="dayplate"></div><div class="resources" id="resources"></div></header>
+  <nav class="rail" aria-label="酒坊功能"><button data-action="home" class="rail-button" id="nav-home"><span data-icon="home"></span><span>酒坊</span></button><button data-action="ledger" data-page="今日" class="rail-button"><span data-icon="book"></span><span>账册</span></button><button data-action="ledger" data-page="酒谱" class="rail-button"><span data-icon="jar"></span><span>酒谱</span></button><button data-action="ledger" data-page="器物" class="rail-button"><span data-icon="lamp"></span><span>器物</span></button><button data-action="settings" class="rail-button small-tool" aria-label="设置"><span data-icon="settings"></span></button></nav>
+  <button class="back porcelain" data-action="home" id="back" hidden>← 回到全院</button>
+  <section class="attention" id="attention" aria-label="今日要紧的事"></section>
+  <section class="detail paper" id="detail" hidden aria-label="当前工位操作"></section>
+  <footer class="bottom"><div class="caption"><span id="view-caption">水乡微光 · 暖坛</span><small>独立界面样板 · 场景为 3D 风格概念图</small></div><div class="time-control" id="time-control"></div></footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</main>
+<aside class="drawer paper" id="drawer" hidden aria-labelledby="drawer-title"><header class="drawer-head"><div><small>当家的账册</small><h2 id="drawer-title">今日</h2></div><button class="icon-button" data-action="close-drawer" aria-label="关闭账册">×</button></header><nav class="book-tabs" id="book-tabs" aria-label="账册页面"></nav><div class="drawer-content" id="drawer-content"></div></aside>
+<dialog id="modal" class="paper"><div id="modal-content"></div></dialog>
+<script src="app.js"></script>
+</body></html>

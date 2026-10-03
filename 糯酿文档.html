@@ -1,0 +1,1639 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#1a3344">
+  <title>糯酿 · 设计文档</title>
+  <style>
+    :root {
+      --forest-950: #142833;
+      --forest-900: #1a3344;
+      --forest-800: #24485c;
+      --forest-700: #2f6278;
+      --forest-600: #4d7c90;
+      --leaf-300: #b7c9c4;
+      --leaf-100: #e4eeea;
+      --fiber-50: #fbf6ee;
+      --fiber-100: #f6efe4;
+      --fiber-200: #eadcc6;
+      --fiber-300: #d7b48a;
+      --ink: #243038;
+      --muted: #667178;
+      --accent: #a85a32;
+      --sidebar: 316px;
+      --shadow: 0 18px 48px rgba(28, 53, 38, .11);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 78% 8%, rgba(169, 195, 156, .3), transparent 25rem),
+        repeating-linear-gradient(105deg, rgba(94, 73, 37, .025) 0 1px, transparent 1px 8px),
+        var(--fiber-100);
+      font: 16px/1.85 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    }
+    a { color: var(--forest-700); text-underline-offset: .22em; }
+    a:hover { color: var(--forest-900); }
+    button, input { font: inherit; }
+    button:focus-visible, input:focus-visible, a:focus-visible, [tabindex]:focus-visible {
+      outline: 3px solid #e6b96d;
+      outline-offset: 3px;
+    }
+    .skip-link {
+      position: fixed;
+      z-index: 100;
+      top: 10px;
+      left: 12px;
+      padding: 8px 12px;
+      color: #fff;
+      background: var(--forest-950);
+      border-radius: 6px;
+      transform: translateY(-150%);
+    }
+    .skip-link:focus { transform: translateY(0); }
+    .sidebar {
+      position: fixed;
+      z-index: 20;
+      inset: 0 auto 0 0;
+      width: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+      color: #f8f4e8;
+      background:
+        linear-gradient(155deg, rgba(255,255,255,.055), transparent 28%),
+        repeating-linear-gradient(35deg, rgba(244,236,217,.025) 0 1px, transparent 1px 10px),
+        var(--forest-900);
+      border-right: 1px solid rgba(255,255,255,.1);
+      box-shadow: 8px 0 28px rgba(18, 39, 27, .1);
+    }
+    .brand-block { padding: 28px 24px 18px; }
+    .brand-mark {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+    }
+    .brand-icon {
+      width: 50px;
+      height: 50px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border: 1px solid rgba(244,236,217,.52);
+      border-radius: 50% 42% 50% 38%;
+      background:
+        repeating-linear-gradient(45deg, rgba(35,75,54,.22) 0 2px, transparent 2px 7px),
+        var(--fiber-200);
+      color: var(--forest-900);
+      font-size: 23px;
+      font-weight: 800;
+      transform: rotate(-4deg);
+    }
+    .brand-name {
+      margin: 0;
+      font-size: 31px;
+      line-height: 1;
+      letter-spacing: .15em;
+      font-weight: 800;
+    }
+    .brand-subtitle {
+      margin: 8px 0 0;
+      color: rgba(248,244,232,.7);
+      font-size: 12px;
+      letter-spacing: .06em;
+      line-height: 1.4;
+    }
+    .search-box { padding: 0 20px 12px; }
+    .search-box label {
+      display: block;
+      margin-bottom: 7px;
+      color: rgba(248,244,232,.72);
+      font-size: 12px;
+    }
+    #search {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 12px 10px 38px;
+      color: var(--ink);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 9px;
+      background:
+        linear-gradient(90deg, transparent 0 34px, rgba(35,75,54,.12) 34px 35px, transparent 35px),
+        #fffdf7;
+    }
+    .search-field { position: relative; }
+    .search-field::before {
+      content: "⌕";
+      position: absolute;
+      z-index: 1;
+      left: 12px;
+      top: 4px;
+      color: var(--forest-700);
+      font-size: 23px;
+      pointer-events: none;
+    }
+    #search-status {
+      min-height: 25px;
+      margin: 7px 2px 0;
+      color: var(--leaf-300);
+      font-size: 12px;
+    }
+    .chapter-nav {
+      min-height: 0;
+      padding: 4px 12px 30px;
+      overflow-y: auto;
+      scrollbar-color: rgba(244,236,217,.28) transparent;
+    }
+    .nav-link {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      gap: 7px;
+      align-items: start;
+      padding: 10px 10px;
+      color: rgba(255,255,255,.78);
+      border-left: 2px solid transparent;
+      border-radius: 7px;
+      text-decoration: none;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+    .nav-link[hidden] { display: none; }
+    .nav-link:hover { color: #fff; background: rgba(255,255,255,.07); }
+    .nav-link.active {
+      color: #fff;
+      border-left-color: var(--fiber-300);
+      background: rgba(255,255,255,.11);
+    }
+    .nav-number {
+      color: var(--fiber-300);
+      font: 700 11px/1.8 ui-monospace, SFMono-Regular, Menlo, monospace;
+      letter-spacing: .08em;
+    }
+    .mobile-bar { display: none; }
+    .page {
+      width: calc(100% - var(--sidebar));
+      margin-left: var(--sidebar);
+      padding: 44px clamp(24px, 6vw, 88px) 80px;
+    }
+    .page-inner { max-width: 1180px; margin: 0 auto; }
+    .hero {
+      position: relative;
+      isolation: isolate;
+      min-height: 245px;
+      padding: 42px clamp(28px, 5vw, 62px);
+      overflow: hidden;
+      color: #fffdf5;
+      border-radius: 20px;
+      background:
+        linear-gradient(112deg, rgba(23,51,38,.98), rgba(45,92,63,.94)),
+        var(--forest-900);
+      box-shadow: var(--shadow);
+    }
+    .hero::before, .hero::after {
+      content: "";
+      position: absolute;
+      z-index: -1;
+      border: 1px solid rgba(244,236,217,.23);
+      border-radius: 45% 55% 38% 62%;
+      transform: rotate(-18deg);
+    }
+    .hero::before { width: 330px; height: 150px; right: -60px; top: -35px; }
+    .hero::after { width: 250px; height: 105px; right: 45px; bottom: -65px; }
+    .eyebrow {
+      color: var(--fiber-300);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .22em;
+      text-transform: uppercase;
+    }
+    .hero h1 {
+      margin: 12px 0 10px;
+      font-size: clamp(38px, 5vw, 66px);
+      line-height: 1.08;
+      letter-spacing: .08em;
+    }
+    .hero p { max-width: 680px; margin: 0; color: rgba(255,255,255,.77); }
+    .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+    .pill {
+      padding: 5px 11px;
+      border: 1px solid rgba(244,236,217,.25);
+      border-radius: 999px;
+      color: var(--fiber-100);
+      background: rgba(255,255,255,.065);
+      font-size: 12px;
+    }
+    .toolbar {
+      position: sticky;
+      z-index: 10;
+      top: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid rgba(210,189,149,.48);
+      border-radius: 12px;
+      background: rgba(251,248,238,.9);
+      box-shadow: 0 8px 24px rgba(43,63,48,.08);
+      backdrop-filter: blur(12px);
+    }
+    .toolbar button, .mobile-nav-button {
+      min-height: 42px;
+      padding: 8px 14px;
+      color: var(--forest-900);
+      border: 1px solid var(--fiber-300);
+      border-radius: 8px;
+      background: #fffdf7;
+      cursor: pointer;
+    }
+    .toolbar button:hover:not(:disabled), .mobile-nav-button:hover {
+      background: var(--leaf-100);
+      border-color: var(--forest-600);
+    }
+    .toolbar button:disabled { cursor: not-allowed; opacity: .45; }
+    .toolbar .print-button { margin-left: auto; }
+    .chapter {
+      display: none;
+      padding: clamp(28px, 5vw, 58px);
+      overflow: hidden;
+      border: 1px solid rgba(210,189,149,.5);
+      border-radius: 18px;
+      background: rgba(255,253,247,.94);
+      box-shadow: var(--shadow);
+    }
+    .chapter.active { display: block; }
+    .show-all .chapter { display: block; margin-bottom: 24px; }
+    .chapter-kicker {
+      margin-bottom: 8px;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+    .chapter h2 {
+      margin: 0 0 28px;
+      color: var(--forest-950);
+      font-size: clamp(28px, 4vw, 43px);
+      line-height: 1.3;
+      letter-spacing: -.015em;
+    }
+    .chapter h3 {
+      margin: 42px 0 15px;
+      padding-bottom: 9px;
+      color: var(--forest-900);
+      border-bottom: 1px solid var(--fiber-200);
+      font-size: 23px;
+      line-height: 1.45;
+    }
+    .chapter h4 { margin: 30px 0 10px; color: var(--forest-800); font-size: 19px; }
+    .chapter h5, .chapter h6 { margin: 24px 0 8px; color: var(--forest-700); }
+    .chapter p { margin: 13px 0; }
+    .chapter ul, .chapter ol { padding-left: 1.5em; }
+    .chapter li { margin: 5px 0; padding-left: .2em; }
+    .chapter li::marker { color: var(--forest-600); font-weight: 700; }
+    .chapter blockquote {
+      margin: 20px 0;
+      padding: 13px 20px;
+      color: #45584a;
+      border-left: 4px solid var(--leaf-300);
+      background: linear-gradient(90deg, var(--leaf-100), rgba(228,236,220,.25));
+      border-radius: 0 9px 9px 0;
+    }
+    .chapter blockquote p:first-child { margin-top: 0; }
+    .chapter blockquote p:last-child { margin-bottom: 0; }
+    hr { margin: 34px 0; border: 0; border-top: 1px solid var(--fiber-200); }
+    code {
+      padding: .12em .38em;
+      color: #254934;
+      border: 1px solid rgba(74,124,89,.16);
+      border-radius: 4px;
+      background: #edf2e8;
+      font: .88em/1.6 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      overflow-wrap: anywhere;
+    }
+    .code-wrap {
+      max-width: 100%;
+      margin: 20px 0;
+      overflow: hidden;
+      border: 1px solid #c9d6c5;
+      border-radius: 10px;
+      background: #e9efe5;
+    }
+    .code-label {
+      padding: 7px 14px;
+      color: var(--forest-700);
+      border-bottom: 1px solid #c9d6c5;
+      background: #dfe9da;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    pre {
+      max-width: 100%;
+      margin: 0;
+      padding: 18px;
+      overflow-x: auto;
+      color: #20392b;
+      scrollbar-color: var(--forest-600) #dfe9da;
+    }
+    pre code {
+      padding: 0;
+      white-space: pre;
+      border: 0;
+      background: transparent;
+      overflow-wrap: normal;
+    }
+    .table-wrap {
+      width: 100%;
+      margin: 20px 0;
+      overflow-x: auto;
+      border: 1px solid #d9d4c5;
+      border-radius: 10px;
+      background: #fff;
+      scrollbar-color: var(--forest-600) var(--fiber-100);
+    }
+    table { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 13px; line-height: 1.6; }
+    th, td {
+      padding: 10px 12px;
+      border-right: 1px solid #e1ddd0;
+      border-bottom: 1px solid #e1ddd0;
+      text-align: left;
+      vertical-align: top;
+    }
+    th:last-child, td:last-child { border-right: 0; }
+    tr:last-child td { border-bottom: 0; }
+    th {
+      color: var(--forest-900);
+      background: #e7ede1;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even) { background: #fbf9f1; }
+    .external-mark { margin-left: .2em; font-size: .75em; text-decoration: none; }
+    #no-results {
+      display: none;
+      padding: 56px 24px;
+      border: 1px dashed var(--fiber-300);
+      border-radius: 16px;
+      color: var(--muted);
+      background: rgba(255,253,247,.72);
+      text-align: center;
+    }
+    #no-results strong { display: block; color: var(--forest-900); font-size: 21px; }
+    footer {
+      margin: 28px 4px 0;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+    .nav-scrim { display: none; }
+    @media (max-width: 920px) {
+      body { padding-top: 58px; }
+      .mobile-bar {
+        position: fixed;
+        z-index: 30;
+        inset: 0 0 auto;
+        height: 58px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 14px;
+        color: #fff;
+        background: var(--forest-900);
+        box-shadow: 0 3px 18px rgba(23,51,38,.2);
+      }
+      .mobile-bar strong { letter-spacing: .12em; }
+      .mobile-nav-button { min-height: 38px; padding: 5px 12px; }
+      .sidebar {
+        z-index: 40;
+        width: min(86vw, 340px);
+        transform: translateX(-105%);
+        transition: transform .2s ease;
+      }
+      .nav-open .sidebar { transform: translateX(0); }
+      .nav-scrim {
+        position: fixed;
+        z-index: 35;
+        inset: 0;
+        background: rgba(10,25,16,.48);
+      }
+      .nav-open .nav-scrim { display: block; }
+      .page { width: 100%; margin-left: 0; padding: 22px 14px 60px; }
+      .hero { min-height: 220px; padding: 34px 24px; border-radius: 14px; }
+      .toolbar { top: 58px; }
+      .chapter { padding: 28px 20px; border-radius: 14px; }
+    }
+    @media (max-width: 560px) {
+      body { font-size: 15px; }
+      .hero h1 { font-size: 38px; }
+      .toolbar { gap: 7px; }
+      .toolbar button { flex: 1 1 calc(50% - 7px); padding-inline: 8px; }
+      .toolbar .print-button { margin-left: 0; }
+      .chapter h3 { font-size: 20px; }
+      table { min-width: 560px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
+    }
+    @media print {
+      @page { margin: 16mm; }
+      body { padding: 0; color: #111; background: #fff; font-size: 11pt; }
+      .sidebar, .mobile-bar, .nav-scrim, .toolbar, footer { display: none !important; }
+      .page { width: auto; margin: 0; padding: 0; }
+      .hero {
+        min-height: 0;
+        margin-bottom: 18mm;
+        padding: 18mm 14mm;
+        color: #111;
+        border: 1px solid #999;
+        box-shadow: none;
+        background: #fff;
+      }
+      .hero p, .eyebrow { color: #333; }
+      .pill { color: #111; border-color: #999; background: #fff; }
+      .chapter, .show-all .chapter {
+        display: block !important;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+        border: 0;
+        border-radius: 0;
+        box-shadow: none;
+        break-before: page;
+      }
+      .chapter h2 { margin-top: 0; }
+      .table-wrap, .code-wrap { overflow: visible; break-inside: avoid; }
+      table { min-width: 0; font-size: 8pt; }
+      pre { overflow: visible; white-space: pre-wrap; }
+      pre code { white-space: pre-wrap; }
+      a { color: inherit; text-decoration: none; }
+      .external-mark { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#reader">跳到正文</a>
+  <div class="mobile-bar">
+    <strong>糯酿 · 设计文档</strong>
+    <button class="mobile-nav-button" id="mobile-nav-button" type="button"
+      aria-controls="sidebar" aria-expanded="false">章节</button>
+  </div>
+  <div class="nav-scrim" id="nav-scrim" aria-hidden="true"></div>
+  <aside class="sidebar" id="sidebar" aria-label="文档章节">
+    <div class="brand-block">
+      <div class="brand-mark">
+        <div class="brand-icon" aria-hidden="true">糯</div>
+        <div>
+          <div class="brand-name">糯酿</div>
+          <p class="brand-subtitle">从糯米到一坛酒</p>
+        </div>
+      </div>
+    </div>
+    <div class="search-box">
+      <label for="search">中文全文搜索</label>
+      <div class="search-field">
+        <input id="search" type="search" autocomplete="off"
+          placeholder="输入关键词…" aria-describedby="search-status">
+      </div>
+      <div id="search-status" role="status" aria-live="polite"></div>
+    </div>
+    <nav class="chapter-nav" aria-label="章节导航"><a class="nav-link" href="#00_文档地图"><span class="nav-number">00</span><span>《糯酿》文档地图</span></a><a class="nav-link" href="#01_游戏总体策划案"><span class="nav-number">01</span><span>《糯酿》游戏总体策划案</span></a><a class="nav-link" href="#02_核心玩法循环与系统框架"><span class="nav-number">02</span><span>核心玩法循环与系统框架</span></a><a class="nav-link" href="#03_蒸甑火候技术实现方案"><span class="nav-number">03</span><span>蒸甑火候技术实现方案</span></a><a class="nav-link" href="#04_数值平衡初版"><span class="nav-number">04</span><span>数值平衡初版</span></a><a class="nav-link" href="#05_配置表结构"><span class="nav-number">05</span><span>配置表结构</span></a><a class="nav-link" href="#06_种植系统详细设计"><span class="nav-number">06</span><span>水田与收稻</span></a><a class="nav-link" href="#07_酿造工序完整设计"><span class="nav-number">07</span><span>酿造工序</span></a><a class="nav-link" href="#08_经营与销售系统"><span class="nav-number">08</span><span>前柜、客人与圩日</span></a><a class="nav-link" href="#09_酒坊布置"><span class="nav-number">09</span><span>酒坊布置</span></a><a class="nav-link" href="#10_升级与成长系统"><span class="nav-number">10</span><span>升级与成长系统</span></a><a class="nav-link" href="#11_夜泉与失传方"><span class="nav-number">11</span><span>夜泉与失传方</span></a><a class="nav-link" href="#12_UIUX流程与线框"><span class="nav-number">12</span><span>UI/UX 流程与线框</span></a><a class="nav-link" href="#13_酒香氛围与经营转化"><span class="nav-number">13</span><span>酒香氛围与经营转化</span></a><a class="nav-link" href="#14_酒坊风格指南"><span class="nav-number">14</span><span>酒坊风格指南</span></a><a class="nav-link" href="#15_灯光水雾与酒色联动"><span class="nav-number">15</span><span>灯光、水雾与酒色</span></a><a class="nav-link" href="#16_NPC与好感度剧情"><span class="nav-number">16</span><span>人手与常驻人物</span></a><a class="nav-link" href="#17_美术资源与命名规范"><span class="nav-number">17</span><span>美术资源与命名规范</span></a><a class="nav-link" href="#18_音效与音乐设计"><span class="nav-number">18</span><span>音效与音乐设计</span></a><a class="nav-link" href="#19_技术架构"><span class="nav-number">19</span><span>技术架构</span></a><a class="nav-link" href="#20_项目目录与资源管理"><span class="nav-number">20</span><span>项目目录与资源管理</span></a><a class="nav-link" href="#21_存档与数据结构"><span class="nav-number">21</span><span>存档与数据结构</span></a><a class="nav-link" href="#22_多平台发布与适配"><span class="nav-number">22</span><span>多平台发布与适配</span></a><a class="nav-link" href="#23_活动与运营接口"><span class="nav-number">23</span><span>活动与运营接口</span></a><a class="nav-link" href="#24_拜访与分享"><span class="nav-number">24</span><span>拜访与分享</span></a><a class="nav-link" href="#25_商业化与DLC"><span class="nav-number">25</span><span>商业化与 DLC</span></a><a class="nav-link" href="#26_测试用例与验收标准"><span class="nav-number">26</span><span>测试用例与验收标准</span></a><a class="nav-link" href="#27_开发计划"><span class="nav-number">27</span><span>开发计划</span></a><a class="nav-link" href="#28_修订记录"><span class="nav-number">28</span><span>修订记录</span></a></nav>
+  </aside>
+  <main class="page" id="reader">
+    <div class="page-inner">
+      <header class="hero">
+        <div class="eyebrow">NUOBREW · DESIGN HANDBOOK</div>
+        <h1>从一粒糯米，到一坛酒。</h1>
+        <p>《糯酿》设计文档离线阅读器。查阅水田与酿造、经营氛围、技术架构、验收标准和开发计划。</p>
+        <div class="hero-meta">
+          <span class="pill">单文件离线阅读</span>
+          <span class="pill">全文搜索</span>
+          <span class="pill">29 个章节</span>
+          <span class="pill">适合打印与另存 PDF</span>
+        </div>
+      </header>
+      <div class="toolbar" aria-label="阅读工具">
+        <button id="previous" type="button" aria-label="上一章节">← 上一章</button>
+        <button id="next" type="button" aria-label="下一章节">下一章 →</button>
+        <button id="show-all" type="button" aria-pressed="false">展开全文</button>
+        <button class="print-button" id="print" type="button">打印 / 另存 PDF</button>
+      </div>
+      <div id="chapters"><section id="00_文档地图" class="chapter" data-title="《糯酿》文档地图" tabindex="-1"><div class="chapter-kicker">文档 00</div><h2>《糯酿》文档地图</h2>
+<p>版本：0.2 · 2026-10-01 状态：设计基线。0.2 修正了 0.1 的计算错误与文档冲突，补上了规则缺口，并按客流上限重做了经济手算（<code>04</code> §12、<code>tools/econ_handcalc.py</code>）。尚未跑蒙特卡洛模拟器，实机手感未验证。逐条改动见 <code>28</code>。</p>
+<p>产品名：《糯酿》。工程代号：NuoBrew。 技术基线：Unity 6 LTS + C#；Blender 经 glTF 2.0 / GLB 导入。 首发平台：电脑端（键鼠，预留手柄）。移动端、主机和云存档不约束首发规则。</p>
+<p>本文把策划简案收成一套可执行的分册。简案里的开放山水、实时联机、酒劲战斗和自由雕瓶，在本版里分别落到「首发可玩」「预留配置」和「明确不做」。</p>
+<h3>1. 一段话读懂 0.1</h3>
+<p>玩家在江南水乡的一进酒坊院里，种三块糯稻田，把米走成酒。米从水田来，不够时才向酒商老周买。一批米依次走浸缸、蒸甑、摊席、曲案、发酵房，再按酒路进入压榨、澄清、酒窖或调配，最后上前柜卖给街坊。院里各站同时运转。玩家要做的是看天、照料稻、决定这批酿成什么、在蒸甑上亲手控一次火、在发酵窗口里搅一次缸、定价卖给谁。</p>
+<h3>2. 文档索引</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">编号</th><th scope="col">文档</th><th scope="col">主责</th><th scope="col">优先级</th></tr></thead><tbody><tr><td>00</td><td><a href="#00_文档地图">文档地图</a></td><td>导航、术语、冲突优先级</td><td>—</td></tr><tr><td>01</td><td><a href="#01_游戏总体策划案">游戏总体策划案</a></td><td>定位、支柱、范围、成功标准</td><td>最高</td></tr><tr><td>02</td><td><a href="#02_核心玩法循环与系统框架">核心玩法循环与系统框架</a></td><td>场地、时间、天气、周节奏、批次、系统边界</td><td>最高</td></tr><tr><td>03</td><td><a href="#03_蒸甑火候技术实现方案">蒸甑火候技术实现方案</a></td><td>蒸饭特写、火候参数、米饭形态、性能</td><td>最高</td></tr><tr><td>04</td><td><a href="#04_数值平衡初版">数值平衡初版</a></td><td><strong>全部数字</strong>、公式系数、经济手算</td><td>最高</td></tr><tr><td>05</td><td><a href="#05_配置表结构">配置表结构</a></td><td>表字段、ID、校验</td><td>最高</td></tr><tr><td>06</td><td><a href="#06_种植系统详细设计">水田与收稻</a></td><td>生长、照料、天气灾、酒商来米</td><td>高</td></tr><tr><td>07</td><td><a href="#07_酿造工序完整设计">酿造工序</a></td><td>浸缸到调配、酒路、瑕疵、败酿、现实对照</td><td>高</td></tr><tr><td>08</td><td><a href="#08_经营与销售系统">前柜、客人与圩日</a></td><td>零售、客群、定价档、老周批购</td><td>高</td></tr><tr><td>09</td><td><a href="#09_酒坊布置">酒坊布置</a></td><td>区域、通路、网格</td><td>高</td></tr><tr><td>10</td><td><a href="#10_升级与成长系统">升级与成长系统</a></td><td>等级、技能、酿艺点</td><td>高</td></tr><tr><td>11</td><td><a href="#11_夜泉与失传方">夜泉与失传方</a></td><td>篇章条件、野生稻、泉华</td><td>中（首发关闭）</td></tr><tr><td>12</td><td><a href="#12_UIUX流程与线框">UI/UX 流程与线框</a></td><td>镜头、账册、蒸甑与看缸、首日引导</td><td>中</td></tr><tr><td>13</td><td><a href="#13_酒香氛围与经营转化">酒香氛围与经营转化</a></td><td>五味结构、氛围、客流、溢价</td><td>中</td></tr><tr><td>14</td><td><a href="#14_酒坊风格指南">酒坊风格指南</a></td><td>水乡院与四套风格的视觉规则</td><td>中</td></tr><tr><td>15</td><td><a href="#15_灯光水雾与酒色联动">灯光、水雾与酒色</a></td><td>灯、雾、酒色与天气光</td><td>中</td></tr><tr><td>16</td><td><a href="#16_NPC与好感度剧情">人手与常驻人物</a></td><td>派工、专长、委托、对话</td><td>中</td></tr><tr><td>17</td><td><a href="#17_美术资源与命名规范">美术资源与命名规范</a></td><td>命名、预算、导入检查</td><td>中</td></tr><tr><td>18</td><td><a href="#18_音效与音乐设计">音效与音乐设计</a></td><td>声床、工站声、天气声</td><td>中</td></tr><tr><td>19</td><td><a href="#19_技术架构">技术架构</a></td><td>分层、步进、模块</td><td>技术</td></tr><tr><td>20</td><td><a href="#20_项目目录与资源管理">项目目录与资源管理</a></td><td>目录、归属</td><td>技术</td></tr><tr><td>21</td><td><a href="#21_存档与数据结构">存档与数据结构</a></td><td>存档 schema 1、写入点</td><td>技术</td></tr><tr><td>22</td><td><a href="#22_多平台发布与适配">多平台发布与适配</a></td><td>电脑端首发、移植边界</td><td>技术</td></tr><tr><td>23</td><td><a href="#23_活动与运营接口">活动与运营接口</a></td><td>活动修正白名单，默认关闭</td><td>后期</td></tr><tr><td>24</td><td><a href="#24_拜访与分享">拜访与分享</a></td><td>酒帖、异步拜访，首发不做</td><td>后期</td></tr><tr><td>25</td><td><a href="#25_商业化与DLC">商业化与 DLC</a></td><td>买断与付费边界，付费接口默认关闭</td><td>后期</td></tr><tr><td>26</td><td><a href="#26_测试用例与验收标准">测试用例与验收标准</a></td><td>纯函数、流程、存档、发布门</td><td>执行</td></tr><tr><td>27</td><td><a href="#27_开发计划">开发计划</a></td><td>里程碑与退出条件</td><td>执行</td></tr><tr><td>28</td><td><a href="#28_修订记录">修订记录</a></td><td>每版改了什么、为什么、哪些是待拍板的取舍</td><td>—</td></tr></tbody></table></div>
+<h3>3. 权威来源与冲突处理</h3>
+<p>同一件事只在一处定义。冲突时先改主责文档，再改引用方，下游不得另写规则。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">事项</th><th scope="col">主责</th><th scope="col">引用方只能</th></tr></thead><tbody><tr><td>做什么、不做什么、体验承诺</td><td><code>01</code></td><td>引用</td></tr><tr><td>时间、天气、周节奏、批次流转、系统边界</td><td><code>02</code></td><td>引用</td></tr><tr><td>任何数字（耗时、容量、价格、概率、门槛）</td><td><code>04</code></td><td>写「见 <code>04</code> §x」，示例须与 <code>04</code> 一致</td></tr><tr><td>五味与氛围的公式结构</td><td><code>13</code>（系数在 <code>04</code>）</td><td>引用</td></tr><tr><td>工站规则、酒路、瑕疵、败酿何时成立</td><td><code>07</code></td><td>引用</td></tr><tr><td>蒸甑特写怎么画、参数怎么映射到米饭</td><td><code>03</code></td><td>引用；判定阈值仍以 <code>04</code> 为准</td></tr><tr><td>客人、匹配、成交、批购规则</td><td><code>08</code></td><td>引用</td></tr><tr><td>表字段与 ID</td><td><code>05</code>；运行时结构 <code>21</code></td><td>引用</td></tr><tr><td>布置与通路 <code>09</code>；风格 <code>14</code>；灯雾酒色 <code>15</code></td><td>各自</td><td>引用</td></tr><tr><td>人物、专长、对话、派工名额（含玩家本人）</td><td><code>16</code></td><td>引用</td></tr><tr><td>是否可发布 <code>26</code>；开发顺序 <code>27</code></td><td>各自</td><td>不覆盖 <code>01</code>–<code>25</code></td></tr></tbody></table></div>
+<p>改 <code>04</code> 的任何数字后，先同步 <code>tools/econ_handcalc.py</code> 顶部常量并运行 <code>python3 tools/econ_handcalc.py</code>，把结果写回 <code>04</code> §12。蒙特卡洛模拟器落地后改为 <code>python3 tools/sim_economy.py --runs 300 --days 28</code>。 文档改完后运行 <code>python3 tools/build_docs_viewer.py</code>，重新生成离线阅读器 <code>糯酿文档.html</code>。</p>
+<h3>4. 统一术语</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">词</th><th scope="col">含义</th></tr></thead><tbody><tr><td>酒坊院</td><td>首发唯一场地。北田南柜，东侧摊席，西侧酒窖。各站同时运转，不切场景</td></tr><tr><td>当家</td><td>玩家本人。不占派工名额，不能代替人手站柜、割稻、压榨。能亲手蒸（蒸甑须有人手在岗）、在窗口内搅缸、照料水田。见 <code>16</code> §3</td></tr><tr><td>人手</td><td>阿禾、阿青，3 级起加伙计。站在要人的工站上才能干活</td></tr><tr><td>工站</td><td>院里的一处活。见下方 ID 表</td></tr><tr><td>酒坊日</td><td>一天的账本。开坊到收工 8 个工时。不绑定现实时钟</td></tr><tr><td>工时</td><td>院内节拍。所有耗时按工时结算，镜头不在也照样扣。时间只在玩家按「推进」时走</td></tr><tr><td>周</td><td>7 个酒坊日。第 6 日是<strong>圩日</strong></td></tr><tr><td>季</td><td>28 个酒坊日。首发只跑一季夏秋，用来完成两到三茬稻</td></tr><tr><td>天气</td><td><code>sun</code> 晴、<code>cloud</code> 阴、<code>rain</code> 雨、<code>heat</code> 暑。账册提前预报 3 天</td></tr><tr><td>斗</td><td>一份糯米，是原料和在制米的计数单位</td></tr><tr><td>坛 / 瓶</td><td>成品容器。甜酒酿出瓶，其余酒路出坛。出数见 <code>04</code> §6</td></tr><tr><td>窖位</td><td>酒窖容量，按批计：一批不论几坛只占 1 个窖位</td></tr><tr><td>后仓 / 展位</td><td>后仓存成品，客人看不见；展位在前柜上，客人只从展位买</td></tr><tr><td>批次</td><td>同一品种、同一品相、一起流转的若干斗</td></tr><tr><td>米囤</td><td>浸缸入口的原料堆。收来和买来的米先放这里，再由玩家组批</td></tr><tr><td>品相</td><td><code>normal</code> 普通 / <code>good</code> 优良 / <code>excellent</code> 完美。只来自稻本身。<code>legend</code> 传说留给篇章，首发不出现</td></tr><tr><td>关键三日</td><td>田处于 G2、G3、G4 的那三天。这三天照料了几天，决定品相</td></tr><tr><td>酒路</td><td><code>sweet</code> 甜酒酿、<code>rice</code> 米酒、<code>clear</code> 清酒、<code>osmanthus</code> 桂花酿。酒路是产品，不是品质</td></tr><tr><td>五味</td><td>香、甜、醇、净、韵。由品种、酒路和瑕疵推出来，供客人匹配和酒谱展示</td></tr><tr><td>瑕疵</td><td><code>steam_hard</code> 夹生、<code>steam_scorch</code> 焦糊、<code>mix_uneven</code> 拌不匀、<code>stir_miss</code> 误了搅缸、<code>rush_clear</code> 澄清不足</td></tr><tr><td>败酿</td><td>瑕疵过多或成色过低时，在压榨口改成醋、料酒或饲料。不销毁</td></tr><tr><td>成色</td><td>0–100。决定能不能走正酒、以及基础售价</td></tr><tr><td>标价档</td><td>让利 / 平价 / 讲究</td></tr><tr><td>批购</td><td>老周按交期收的批量酒。收定金</td></tr><tr><td>常驻委托</td><td>阿禾、阿青给的小委托，带短对话</td></tr><tr><td>文 / 声望 / 酿艺点 / 泉华</td><td>软通货 / 0–100 声望 / 亲手蒸甑与看缸所得 / 篇章资源（首发不投放）</td></tr><tr><td>酒意</td><td>自品后的当日表现标签。不进经济和工时</td></tr><tr><td>G0–G6</td><td>水田阶段。G5 黄熟可割，G6 过熟</td></tr><tr><td>封签</td><td>瓶坛上的颜色与酒名。是展示，不是品质</td></tr></tbody></table></div>
+<p>工站 ID：<code>station_paddy</code> 水田、<code>station_soak</code> 浸缸、<code>station_steam</code> 蒸甑、<code>station_cool</code> 摊席、<code>station_mix</code> 曲案、<code>station_ferment</code> 发酵房、<code>station_press</code> 压榨、<code>station_clear</code> 澄清槽、<code>station_cellar</code> 酒窖、<code>station_blend</code> 调配案、<code>station_counter</code> 前柜。</p>
+<h3>5. 现实与虚构</h3>
+<ul><li>工序顺序参照江南糯米酒的手工关系：淘浸、蒸饭、摊凉、拌曲、入缸、发酵中搅动、压榨、澄清、坛装陈放，需要时再加桂花一类辅料。现实对照表见 <code>07</code> §12。</li><li>时间是压缩的。现实里一季糯稻和一坛酒的发酵、陈放都以天和月计。游戏把它们压进酒坊日和工时。文案不写现实天数，也不写真实酒精度。</li><li>五味和成色只在游戏里成立。不写饮用功效、保健、解酒或真实检测报告。</li><li>败酿改成醋、料酒、饲料，是游戏里的去向，不写成食品工艺教程。</li><li>夜泉、泉华、野生古老稻、酒仙晚照是虚构篇章，走同一条主链。</li></ul>
+<h3>6. 首发范围</h3>
+<p><strong>首发可玩：</strong></p>
+<ul><li>一进酒坊院，十一个工站</li><li>三块水田，加上老周卖米</li><li>天气、周节奏与圩日；工时内含傍晚和入夜</li><li>白糯、香糯、紫糯</li><li>家曲；桂花在酒坊 3 级开放（只在调配站加，没有单独的桂花曲）</li><li>四条酒路里先开放甜酒酿、米酒、清酒</li><li>败酿三去向</li><li>前柜零售与老周批购</li><li>水乡微光风格</li><li>酒坊 1–4 级</li><li>两名常驻（阿禾、阿青）、酒商老周</li><li>两种瓶坛外形、三种封签色、玩家自定酒名</li></ul>
+<p><strong>首发不做：</strong></p>
+<ul><li>开放山水、独立探索关卡、解谜副本</li><li>实时流体、软体米饭、物理倒伏模拟</li><li>战斗、夜视、加速等属性酒劲</li><li>自由雕刻酒瓶</li><li>公会、排行榜、玩家市场</li><li>实时联机与强制好友</li><li>付费跳过任何工序</li><li>惩罚性绝收（倒伏只降品相，田还在）</li></ul>
+<p><strong>预留配置、首发关闭：</strong> 夜泉篇章、黑糯与野生稻、另外三套风格、节日活动、异步拜访、支付与外观包。</p></section><section id="01_游戏总体策划案" class="chapter" data-title="《糯酿》游戏总体策划案" tabindex="-1"><div class="chapter-kicker">文档 01</div><h2>《糯酿》游戏总体策划案</h2>
+<p>版本：0.2 · 2026-10-01 主责：产品定位、体验支柱、范围与成功标准。系统细则见 <code>02</code> 起各专项；所有数字见 <code>04</code>。</p>
+<h3>1. 一句话</h3>
+<p>在一进水乡酒坊院里，把三块田里的糯米蒸熟、下曲、看缸，酿成街坊愿意带走的一坛酒。院里各站同时在转。玩家能看出哪一缸到了该搅的时候，也知道柜上那坛为什么卖了、为什么没卖。</p>
+<h3>2. 定位</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">决定</th></tr></thead><tbody><tr><td>类型</td><td>单人、轻度 3D 酒坊经营（水田 + 酿造链 + 小店零售 + 批购）</td></tr><tr><td>参照体验</td><td>生产链的可视化与堵点排查；小店经营的定价与客群；蒸饭与看缸的短时专注</td></tr><tr><td>气质</td><td>安静、清楚、米和酒的变化看得见。低面数暖色写实，风格名「水乡微光 · 暖坛」</td></tr><tr><td>场地</td><td>一进酒坊院，约 48 × 28 米，大于一屏。北田南柜，东侧摊席，西侧酒窖</td></tr><tr><td>单局</td><td>一个酒坊日 8 工时。熟手约 15–25 分钟过完一天</td></tr><tr><td>中期</td><td>一周 7 日，每周第 6 日圩日。一季 28 日，足够种下并收完两到三茬</td></tr><tr><td>长线</td><td>酒坊 1–4 级（首发）。之后是风格、夜泉篇章与自定酒谱</td></tr><tr><td>平台</td><td>电脑端首发，键鼠操作，预留手柄</td></tr><tr><td>团队假设</td><td>小团队 + AI 辅助。内容数据驱动；美术走 Blender → GLB → Unity</td></tr><tr><td>引擎</td><td>Unity 6 LTS，C#。三维：Blender</td></tr></tbody></table></div>
+<p>好玩和好看好于写实酒厂。它是亲手把一斗米做成有人要的酒，不是农艺考试，也不是品酒考证。</p>
+<h3>3. 目标用户</h3>
+<ul><li>喜欢看着一处地方运转起来，并自己找出哪里堵住的人。</li><li>愿意为一次蒸饭或一次看缸停下来的人。</li><li>喜欢「今天该做什么」有理由的人：明天有雨，今天把摊席上的饭收进檐下；后天圩日，得先有甜酒酿上柜。</li></ul>
+<p>年龄取 18–40，作为题材尺度，不作为系统门槛。 不作为设计前提：硬核农业模拟、真实酿酒配比、开放世界清任务、高速手操、强社交、重课金。</p>
+<h3>4. 体验支柱</h3>
+<p>每条支柱都要有能验收的样子，见 <code>26</code>。</p>
+<ol><li><strong>离屏也在干活。</strong> 镜头在前柜时，稻照样长，缸照样发酵，窖里照样陈。挪回去看到的是结果，不是一个等着点的按钮。</li><li><strong>一眼能认站、认货。</strong> 青稻、黄熟稻、干米、湿饭、发酵缸、甜酒酿、米酒、清酒、醋坛，靠轮廓和材质就能分开。</li><li><strong>决定少而硬，都有理由。</strong> 玩家每天要定的事：</li></ol>
+<ul><li>哪块田今天照料，照料哪一件（由天气给出唯一建议）</li><li>这批米走哪条酒路</li><li>蒸的时候火怎么走</li><li>搅缸的窗口来了做不做</li><li>谁站哪一站</li><li>标价放哪一档</li><li>接不接老周的批购</li></ul>
+<p>淘米、翻摊、日常除草由人手完成。</p>
+<ol><li><strong>蒸甑是亲手的一站。</strong> 人手按默认火候蒸，能出酒。玩家亲手蒸的那批，在目标带内完成，成色更高，五味更稳。</li><li><strong>看缸是第二个短决定。</strong> 发酵走到窗口时，搅一次就避开 <code>stir_miss</code>。错过可以继续酿，酒会更浊，也可以在压榨口改去向。</li><li><strong>卖不掉要说得出为什么。</strong> 太贵、想要别的酒路、想要更净、柜上没有。布置只影响客流和一点溢价，不能把次酒卖成完美。</li><li><strong>可中断。</strong> 每个工时结算后写盘。天气、客人、老周报价都由种子决定，读档不重掷。</li></ol>
+<h3>5. 核心循环一览</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">每日：看预报与老周报价 → 照料 / 收稻 → 组批 → 派工 → 各站并行
+     → 亲手蒸一批、在窗口搅一缸 → 上柜定价 → 接待客人 / 交批购 → 收工三行日结
+每周：为圩日备甜酒酿或桂花酿；雨天不把饭晾在露天摊上
+一季：播、管、收、大批入缸、圩日售出 → 酒坊升级
+长线：扩缸、添窖位、解锁品种和酒路 → 客群变化 → 酒坊的风格固定下来</code></pre></div>
+<p>细则见 <code>02</code>。</p>
+<h3>6. 商业模式</h3>
+<p>首发是完整单机，买断制。文、声望、酿艺点都在玩法内循环。泉华只服务夜泉篇章，首发不投放。广告、内购、DLC、赛季通行证的接口见 <code>25</code>，默认关闭。验收底线是：不付费也能在 28 个酒坊日内到 4 级，并且甜酒酿和至少一条坛装酒路都卖出过。</p>
+<h3>7. 长线内容</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">阶段</th><th scope="col">玩家得到什么</th><th scope="col">依赖</th></tr></thead><tbody><tr><td>首发</td><td>十一站主链、天气与圩日、老周、批购、酒坊 1–4 级、水乡微光、两名常驻</td><td><code>02</code>–<code>10</code>、<code>12</code>、<code>16</code>、<code>17</code>、<code>19</code>–<code>22</code></td></tr><tr><td>第一季</td><td>暖窑 / 白瓷两套风格、中秋桂花活动 <code>act_osmanthus</code>、常驻旧事短篇、酒坊 5 级接口</td><td><code>14</code>–<code>16</code>、<code>23</code></td></tr><tr><td>夜泉章</td><td>野生稻走同一条主链，晚照短篇，一处泉院小景</td><td><code>11</code></td></tr><tr><td>可选扩展</td><td>酒帖分享、异步拜访、节日活动、外观包</td><td><code>23</code>、<code>24</code>、<code>25</code></td></tr></tbody></table></div>
+<p>首发把稻收在 3 种、酒路收在 3 条（第 4 条随 3 级开），是为了先把「种熟 → 蒸到能看懂的饭 → 酿成客人要的那一坛」打磨顺。横向加品种不改规则。</p>
+<h3>8. 成功标准</h3>
+<p><strong>首日：</strong></p>
+<ul><li>新玩家在第 1 个酒坊日内，对开局那缸已在发酵的酒完成一次窗口内搅缸，并亲手蒸完开局那批待蒸的米。</li><li>同一天里，至少还有一批在浸缸或发酵房里并行。</li><li>收工前，前柜至少成交一次。开局后仓备有 4 瓶甜酒酿，阿青站在前柜，见 <code>04</code> §1.1。</li></ul>
+<p><strong>首周：</strong></p>
+<ul><li>玩家能指出：哪一天因为天气改变了摊席或水田的做法。</li><li>圩日当天客流高于相邻平日，且柜上有至少一种甜酒酿或短周期酒。</li><li>一块田从播种走到可收，品相与这几天的照料一致。</li></ul>
+<p><strong>发布：</strong></p>
+<ul><li>静音、色弱模式下仍能完成首日循环。关键状态不只靠颜色：夹生、焦糊、该搅了，都有形状或图标。</li><li>中断后回到最近一次工时结算，不重复扣钱、不重复出酒。</li><li>首发包体与帧率达到 <code>22</code> 的工程门槛，并有电脑端记录。</li></ul>
+<h3>9. 明确不做</h3>
+<ul><li>运行时真实流体、米饭软体、稻秆物理倒伏。</li><li>把游戏内香、甜、酒体写成酒精度、糖度、功效或检测报告。</li><li>用酒给玩家加夜视、移速、战斗或经营数值。酒意只改表现，见 <code>13</code>。</li><li>惩罚性绝收、强制好友、付费才能完成蒸饭或发酵。</li><li>首发就把开放地图、黑糯、四套风格、夜泉章、联机和运营活动全部做完。</li></ul></section><section id="02_核心玩法循环与系统框架" class="chapter" data-title="核心玩法循环与系统框架" tabindex="-1"><div class="chapter-kicker">文档 02</div><h2>核心玩法循环与系统框架</h2>
+<p>版本：0.2 · 2026-10-01 主责：场地、时间、天气、周节奏、批次流转、系统边界。数字见 <code>04</code>；工站规则见 <code>06</code>、<code>07</code>；销售见 <code>08</code>；字段见 <code>05</code>。</p>
+<h3>1. 场地</h3>
+<p>首发只有一进院子，叫酒坊院。北端是水田，南端朝河埠开门。玩家不能走出河埠。风格只换灯、坛、帘、柜，不换地形。</p>
+<h4>1.1 平面</h4>
+<p>灰盒以北为上。占地约 48 米（南北）× 28 米（东西），含水岸矮栏。尺寸可以偏一成，但邻接关系不能改。</p>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">北   远河与对岸屋瓦（只可看）
+     水田三块
+     米囤 → 浸缸 — 蒸甑
+                    檐廊（有顶，主路，通向南）
+     摊席（东，无顶）           曲案（廊东）
+     发酵房（廊西小间）         压榨 — 澄清槽
+     酒窖（西，半地下入口，仍在同一场景）
+南   调配案 + 前柜 — 河埠（老周、客人从这里来）</code></pre></div>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">部位</th><th scope="col">约尺寸</th><th scope="col">顶</th><th scope="col">作用</th></tr></thead><tbody><tr><td>水田</td><td>16 × 10 m</td><td>露天</td><td>三块田。另留一条田埂空位给篇章 <code>plot_wild</code></td></tr><tr><td>米囤</td><td>3 × 2 m</td><td>檐下</td><td>浸缸入口的米筐，上限见 <code>04</code> §3</td></tr><tr><td>浸缸、蒸甑</td><td>各约 4 × 4 m</td><td>灶棚</td><td>浸完直接上甑</td></tr><tr><td>摊席</td><td>东侧 8 × 6 m</td><td>无，见天</td><td>摊凉。雨天席收到檐下</td></tr><tr><td>曲案</td><td>廊东</td><td>廊檐</td><td>拌家曲</td></tr><tr><td>发酵房</td><td>廊西 6 × 5 m</td><td>有顶</td><td>缸。窗口期缸沿亮一圈</td></tr><tr><td>压榨、澄清</td><td>廊西南</td><td>檐下</td><td>压榨后分酒路：清酒进槽，米酒可直接下窖</td></tr><tr><td>酒窖</td><td>西侧入口</td><td>窖顶不单独加载场景</td><td>坛装陈放。镜头推近即可，不切关卡</td></tr><tr><td>调配案</td><td>前柜后侧</td><td>店檐</td><td>桂花酿在这里加辅料</td></tr><tr><td>前柜</td><td>进深约 6 m</td><td>店檐</td><td>展位朝南</td></tr><tr><td>河埠</td><td>门外约 4 m 可见</td><td>露天</td><td>客人、老周从这里来</td></tr></tbody></table></div>
+<p>甜酒酿在发酵房按短时出缸，不过压榨，直接装瓶去前柜或后仓。其余酒路必须经过压榨。</p>
+<h4>1.2 边界</h4>
+<ul><li>东西是竹篱和水杉，篱外用邻屋粉墙封边。北界是田埂外的河，南界是河埠。</li><li>时令固定在夏末到秋初的一季。八个工时里，后两时是傍晚和入夜。没有第二层楼。酒窖是同一场景里的下沉一阶，不单独加载。</li></ul>
+<h4>1.3 镜头与离屏</h4>
+<ul><li>全院档沿檐廊至少同时看清三站。工站档对准该站锚点。</li><li>不在镜头里的站照常结算。画面只渲染可见站和当前特写，数据层保存全部批次。</li><li>布置不能占主路、田埂、摊席、展位、客人站位、缸前搅缸站位，见 <code>09</code>。</li></ul>
+<h3>2. 时间</h3>
+<h4>2.1 一天</h4>
+<p>一个酒坊日 8 个工时。没有互相锁住的阶段。工时 1–5 为昼，6 为傍晚，7–8 为入夜。入夜仍可蒸、可搅、可上窖；前柜在入夜不再来新客人，已经站在柜前的客人会把这次买卖说完。</p>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">开坊：结算天气与预报、老周报价、批购板、当日氛围与客流、客人到达时刻
+  → 8 个工时内，各站同时推进
+  → 玩家随时收稻、组批、选酒路、派工、亲手蒸、搅缸、上柜
+  → 收工（或工时走满）：水田结算、订单到期、开销、三行日结
+  → 次日开坊，缸、窖、摊席、米囤和后仓都还在</code></pre></div>
+<h4>2.2 推进</h4>
+<p>玩家按「推进」，时间走到最近的一个交接点停下：</p>
+<ul><li>某个计时站做完一批。</li><li>某缸进入或离开搅缸窗口。</li><li>下一位客人走到前柜。</li><li>某个要人的站有活等着，却没有人。</li><li>某块田今晚收工会因天气降品相，且离收工只剩 1 工时（见 <code>06</code> §5）。</li></ul>
+<p>推进不替玩家派工，也不改酒路和火候。要人的站没人时，该站停住，其余站继续走。</p>
+<p>除了推进，时间不会走。组批、派工、上架、翻账册、摆家具都不耗工时。没有现实倒计时。关掉游戏，院就停在最后一次写盘的工时。</p>
+<p><strong>一键收工</strong>：等于连续推进到第 8 工时，途中不停，但交接点上的事照常结算（窗口过了没搅照样记 <code>stir_miss</code>，没人看柜的客人照样离开）。按下前弹一句确认，列出会因此错过的窗口和客人。</p>
+<h4>2.3 天气</h4>
+<p>天气按日决定，开坊时公布当日天气和后三日预报。预报准确。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">天气</th><th scope="col">摊席</th><th scope="col">水田</th><th scope="col">发酵</th><th scope="col">客流</th></tr></thead><tbody><tr><td>晴</td><td>正常</td><td>今日照料为浇水</td><td>正常</td><td>正常</td></tr><tr><td>阴</td><td>正常</td><td>今日照料为除草</td><td>正常</td><td>正常</td></tr><tr><td>雨</td><td>速度见 <code>04</code>，席收到檐下，保留进度</td><td>今日照料为扶秧。G4–G5 未扶则倒伏降品</td><td>正常</td><td>减少，见 <code>04</code></td></tr><tr><td>暑</td><td>速度见 <code>04</code></td><td>今日照料为遮阴。G3–G5 未遮则降品</td><td>窗口变窄，见 <code>04</code></td><td>正常</td></tr></tbody></table></div>
+<p>概率、首三日保底、连续雨限制见 <code>04</code> §2。天气只影响上表各项，不改蒸甑、压榨、酒窖的基础耗时。</p>
+<h4>2.4 周、圩日与季</h4>
+<ul><li>一周 7 个酒坊日。第 6 日是圩日：客流倍率见 <code>04</code>，游客加入客人池，老周米多价低、收酒价略好。</li><li>一季 28 日。首发不切春夏秋冬四套地图，只用这一季把稻的复种跑通。</li><li>账册顶部显示「距圩日 N 日」。批购交期按酒坊日数，不看星期。</li></ul>
+<h3>3. 批次与主链</h3>
+<h4>3.1 组批</h4>
+<ul><li>米进米囤时带品种、品相。</li><li>玩家从米囤组批：同品种、同品相才能成一批。斗数在当前等级的 <code>batchMin</code> 到 <code>batchMax</code> 之间，见 <code>04</code> §4。</li><li>组批时选定酒路。酒路决定后面走哪些站，见 <code>07</code> §2。选定后，在进入蒸甑之前可以改；上甑之后锁定。</li></ul>
+<h4>3.2 流转</h4>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">米囤 → 浸缸 → 蒸甑 → 摊席 → 曲案 → 发酵房
+        甜酒酿：短发酵 → 装瓶 → 后仓 / 前柜
+        米酒：满发酵 → 压榨 → 酒窖 → 后仓 / 前柜
+        清酒：满发酵 → 压榨 → 澄清 → 酒窖 → 后仓 / 前柜
+        桂花酿：米酒路径 → 调配 → 后仓 / 前柜</code></pre></div>
+<p>压榨口若判定为败酿，玩家改选醋、料酒或饲料，不再进入澄清、酒窖和调配。清酒离开澄清槽时还会再判一次。见 <code>07</code> §9。</p>
+<p>后仓满时，做完的成品留在出口站，不坏，但占着那一站，直到后仓腾出位置。</p>
+<h4>3.3 并行</h4>
+<p>在制批次上限见 <code>04</code>。米囤里的米不算在制。甜酒酿因为不过窖，周转快，用来赶圩日和喂街坊；坛装酒占用窖位，单价高，用来接茶客、行商和批购。</p>
+<h4>3.4 人手</h4>
+<p>要人的站（采收、蒸甑、曲案、压榨、调配、前柜）必须有人手在岗才走。玩家本人是「当家」，不占名额，规则见 <code>16</code> §3。人手数量见 <code>04</code> §4。</p>
+<h3>4. 系统边界</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">系统</th><th scope="col">管什么</th><th scope="col">不管什么</th></tr></thead><tbody><tr><td>水田 <code>06</code></td><td>阶段、当日那一件照料、品相、倒伏、老周的米</td><td>酒的五味</td></tr><tr><td>酿造 <code>07</code></td><td>酒路、工站完成条件、瑕疵、败酿、成色何时加算</td><td>售价数字</td></tr><tr><td>蒸甑特写 <code>03</code></td><td>火候三条参数怎么显示和手感</td><td>判定阈值</td></tr><tr><td>前柜 <code>08</code></td><td>谁来买、为什么成交或离开、批购</td><td>稻怎么长</td></tr><tr><td>布置 <code>09</code></td><td>能不能放下、挡不挡路</td><td>风格好不好看</td></tr><tr><td>氛围 <code>13</code></td><td>布置如何变成客流和溢价；五味如何合成</td><td>系数</td></tr><tr><td>人物 <code>16</code></td><td>谁擅长哪一站、委托、对话</td><td>工资以外的数值发明</td></tr><tr><td>成长 <code>10</code></td><td>等级解锁什么</td><td>新公式</td></tr></tbody></table></div>
+<h3>5. 一日结束时账上必须说清的三行</h3>
+<ol><li>田：哪块升了阶段，哪块降了品相，原因是天气还是没照料。</li><li>酒：哪批出了成品或败酿，哪批还在哪一站，有没有误了搅缸。</li><li>柜：卖了什么、没卖的主因、距圩日还有几天。</li></ol>
+<p>这三行的文案规则见 <code>12</code>。生成它们的数据必须能从当日 diff 里得到，不另掷随机。</p></section><section id="03_蒸甑火候技术实现方案" class="chapter" data-title="蒸甑火候技术实现方案" tabindex="-1"><div class="chapter-kicker">文档 03</div><h2>蒸甑火候技术实现方案</h2>
+<p>版本：0.2 · 2026-10-01 主责：蒸饭特写里的米饭怎么在 Unity 里实现。工序与成色以 <code>07</code> 为准，命名以 <code>17</code> 为准，目标带、容差和亲手加成以 <code>04</code> §7 为准。</p>
+<h3>1. 目标与范围</h3>
+<p>浸缸结束的米才会进蒸甑。玩家亲手蒸一批时进入特写：</p>
+<ol><li>看到这批的品种和目标火候带。</li><li>调三个连续参数，或在一条火候曲线上拖三个把手。</li><li>确认。预览立刻显示这锅饭是夹生、正好还是焦边。</li></ol>
+<p>整批共用这一组参数。首发用<strong>三条火候参数 + 米饭形态键</strong>。自由雕塑饭粒不做。</p>
+<p>人手蒸这批时不进特写，直接写入该品种的默认参数。默认参数落在目标带内，没有瑕疵，也没有亲手加成。</p>
+<p>院里同时有多批米和酒。形态键只在特写的这一甑上播放。田里、缸里、柜上一律用静态体。</p>
+<h3>2. 参数含义</h3>
+<p>三条参数取值都是 0–1。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">参数</th><th scope="col">玩家看到的名字</th><th scope="col">含义</th><th scope="col">偏小</th><th scope="col">偏大</th></tr></thead><tbody><tr><td>rise</td><td>起火</td><td>蒸汽上来的急缓</td><td>饭心热得慢，夹生</td><td>外层先焦</td></tr><tr><td>hold</td><td>稳火</td><td>中段维持的长短</td><td>心没透，夹生</td><td>水汽抽干，焦糊</td></tr><tr><td>rest</td><td>收火</td><td>停火后焖的长短</td><td>表面回潮，发黏</td><td>余热把边烤焦</td></tr></tbody></table></div>
+<p>品种的目标中心 <code>targetRise / targetHold / targetRest</code> 在 <code>varieties.json</code>，具体数字见 <code>04</code> §5。容差带外才记瑕疵：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">出带</th><th scope="col">记</th></tr></thead><tbody><tr><td>起火或稳火低于目标带</td><td><code>steam_hard</code></td></tr><tr><td>起火、稳火或收火高于目标带</td><td><code>steam_scorch</code></td></tr><tr><td>收火低于目标带</td><td>不记瑕疵，但这批算出带</td></tr><tr><td>同时触发夹生和焦糊</td><td>两条都记</td></tr></tbody></table></div>
+<p>判定只看是否出带，不在带内再分高低分。三条都在带内、且由玩家确认，才记 <code>handmade = true</code>。出带的亲手批 <code>handmade = false</code>，酿艺点按 <code>04</code> §11 记 +1。</p>
+<h3>3. 技术选型</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">方案</th><th scope="col">结论</th><th scope="col">原因</th></tr></thead><tbody><tr><td>形态键 Morph Target</td><td>首发采用</td><td>Blender 可导出，Unity glTF 导入支持。预设稳定，面数可控</td></tr><tr><td>三条滑杆驱动权重</td><td>首发采用</td><td>玩家能预判，方便做色弱下的形状差</td></tr><tr><td>运行时软体 / 流体蒸汽</td><td>不做</td><td>结果不稳定，同屏多批次负担不起</td></tr><tr><td>逐粒模拟</td><td>不做</td><td>和「看一甑」的读法无关</td></tr></tbody></table></div>
+<ul><li>基线网格 <code>mdl_rice_bed</code>，1.0k–1.6k 三角面。</li><li>三组形态键：<code>key_hard</code> 散硬、<code>key_gloss</code> 软亮、<code>key_scorch</code> 焦边。</li><li>蒸汽用一张循环的半透明片和少量粒子，粒子数量见 <code>04</code> §13，不参与判定。</li></ul>
+<h3>4. 组件</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">SteamSession       一次特写的会话
+  SteamMeshView    显示饭床与形态键权重
+  SteamCurve       起火 / 稳火 / 收火
+  SteamInput       键鼠：拖把手、方向键 ±0.05、滚轮缩放、Esc 取消回到默认
+  SteamPreview     带内、夹生、焦糊的文字和图标
+  SteamBaker       确认后写回批次并退出特写</code></pre></div>
+<div class="code-wrap"><div class="code-label">CSHARP</div><pre><code class="language-csharp">public sealed class SteamDraft {
+    public string BatchId;
+    public float Rise;   // 0–1
+    public float Hold;
+    public float Rest;
+}</code></pre></div>
+<p>领域层根据草稿和品种目标带算出瑕疵与形态键权重。视图层只应用权重。领域层程序集不引用 <code>UnityEngine</code>。</p>
+<h3>5. 权重</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">hard   = clamp(bandDistance(hold, lowSide) + bandDistance(rise, lowSide), 0, 1)
+scorch = clamp(bandDistance(hold, highSide) + bandDistance(rise, highSide) + bandDistance(rest, highSide), 0, 1)
+gloss  = clamp(1 - hard - scorch, 0, 1) × (1 - 0.5 × bandDistance(rest, lowSide))</code></pre></div>
+<p><code>bandDistance</code> 在目标带内为 0，出带后按超出量线性升到 1。带的半宽见 <code>04</code> §7。 夹生时饭床保持颗粒缝隙；正好时缝隙合上、表面有一块高光；焦糊时边缘形态键压过高光；收火偏低时高光变暗、表面发黏，但缝隙仍合上。色弱玩家靠缝隙和图标区分，不靠金黄和焦黄。</p>
+<h3>6. 交互</h3>
+<ul><li>只有蒸甑上有人手在岗时才能进特写：人手烧火，当家掌火候，见 <code>16</code> §3。</li><li>进入特写时时间暂停。暂停不算工时。退出后从进入前的工时继续。</li><li>未确认就退出：这批仍停在蒸甑，不消耗工时。</li><li>确认：写入参数、瑕疵和 <code>handmade</code>，蒸甑工时开始倒计时。倒计时长度不因火候好坏改变，见 <code>04</code> §4。</li><li>手柄：左摇杆选把手，右摇杆改值。首发可以只做键鼠，但输入模块把指针和摇杆都收成同一份 <code>SteamDraft</code>。</li></ul>
+<h3>7. 性能</h3>
+<ul><li>全院同时只允许 1 个蒸甑特写。</li><li>饭床形态键不在院景里播放。院景用三档静态体：<code>rice_hard</code>、<code>rice_gloss</code>、<code>rice_scorch</code>，由烘焙结果选一档。</li><li>蒸汽粒子上限见 <code>04</code> §13。镜头离开灶棚时粒子停，数据不停。</li></ul>
+<h3>8. Blender 导出</h3>
+<ul><li>单位米，应用缩放（Apply Scale）。Blender 内保持默认 Z 向上，导出 glTF 时勾选 +Y Up，由导出器转成 glTF 的 Y 向上。</li><li>形态键必须在同一拓扑上。</li><li>导出 GLB，不嵌贴图图集以外的大纹理。贴图预算见 <code>17</code>。</li><li>预览相机机位固定，供酒谱缩略图以后复用；首发缩略图可以是图标，不是实时截图。</li></ul></section><section id="04_数值平衡初版" class="chapter" data-title="数值平衡初版" tabindex="-1"><div class="chapter-kicker">文档 04</div><h2>数值平衡初版</h2>
+<p>版本：0.2 · 2026-10-01 主责：全部数字。其他文档出现的数字，如与本文件不一致，以本文件为准。 状态：试玩初值。§12 是按客流上限做的期望值手算（<code>tools/econ_handcalc.py</code>），尚未跑蒙特卡洛模拟器，未经实机试玩。调参只改表，不改代码公式；公式结构见 <code>07</code>、<code>08</code>、<code>13</code>。</p>
+<p>说明：以下数字是游戏节奏的设定，不代表现实中的农时、产量、酒精度或价格。</p>
+<h3>1. 资源起点</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">资源</th><th scope="col">开局</th><th scope="col">主要来源</th><th scope="col">主要去向</th></tr></thead><tbody><tr><td>文</td><td>160</td><td>零售、批购</td><td>买米、种子、曲、桂花、开销、器物、升级</td></tr><tr><td>声望</td><td>15</td><td>成交、准时交购、委托</td><td>升级门槛。不进客流和售价公式</td></tr><tr><td>酿艺点</td><td>0</td><td>亲手蒸甑、窗口内搅缸、委托</td><td>技能</td></tr><tr><td>泉华</td><td>0</td><td>篇章（首发不投放）</td><td>夜泉酒方</td></tr></tbody></table></div>
+<h4>1.1 开局院况</h4>
+<p>写死在 <code>content/start_state.json</code>。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">状态</th></tr></thead><tbody><tr><td>批 A</td><td>白糯，2 斗，完美，酒路米酒；在发酵房，已进行 2.5 工时，共 6 工时。搅缸窗口是进度 0.417–0.583（第 2.5–3.5 工时），开局这一刻刚好打开，还剩 1 工时</td></tr><tr><td>批 B</td><td>白糯，2 斗，普通，酒路未定；浸缸已完成，停在蒸甑前。上甑前须选定酒路</td></tr><tr><td>后仓</td><td>甜酒酿 4 瓶：白糯、普通、人手蒸、无瑕疵，成色 42。保证首日能成交</td></tr><tr><td>水田</td><td>1 号田白糯 G4。关键三日已计 1 天，今日已照料，计第 2 天，次日开坊 G5、品相优良。2、3 号田空</td></tr><tr><td>人手</td><td>阿禾在蒸甑，阿青在前柜。都不在发酵房，开局那次搅缸留给玩家</td></tr><tr><td>布置</td><td>水乡微光基础 6 件，A = 18</td></tr><tr><td>天气</td><td>第 1–3 日固定为晴</td></tr><tr><td>家曲</td><td>4 份</td></tr></tbody></table></div>
+<h3>2. 时间与天气</h3>
+<h4>2.1 工时</h4>
+<ul><li>一个酒坊日 8 工时。工时 1–5 昼，6 傍晚，7–8 入夜。</li><li>入夜新客人：0。</li><li>换岗：拖动后，下一个整点在新站开始计数。走路只是表现，不另扣工时。</li><li>蒸甑特写暂停不计时。</li></ul>
+<h4>2.2 周与季</h4>
+<ul><li>一周 7 日。第 6、13、20、27 日是圩日。</li><li>一季 28 日。</li><li>圩日：客流 ×1.5（四舍五入），游客加入客人池。老周见 §3.2。</li></ul>
+<h4>2.3 天气</h4>
+<ul><li>由 <code>hash(profileId, dayIndex)</code> 决定，读档不重掷。</li><li>第 1–3 日固定晴。此后按下表抽取。</li><li>连续雨天不超过 2 日：已经连下 2 日雨时，下一日若抽到雨，改为阴。</li></ul>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">天气</th><th scope="col">概率</th><th scope="col">摊席速度</th><th scope="col">发酵窗口宽度</th><th scope="col">客流</th></tr></thead><tbody><tr><td>晴</td><td>0.50</td><td>1</td><td>1.0 工时</td><td>±0</td></tr><tr><td>阴</td><td>0.22</td><td>1</td><td>1.0 工时</td><td>±0</td></tr><tr><td>雨</td><td>0.16</td><td>2/3</td><td>1.0 工时</td><td>−1，至少 1</td></tr><tr><td>暑</td><td>0.12</td><td>1.25</td><td>0.5 工时</td><td>±0</td></tr></tbody></table></div>
+<p>计时站的剩余工时按速度扣减，可以出现小数。显示时向上取整。发酵总时长不变，只改窗口宽度。窗口中心仍在进度 0.50。</p>
+<h3>3. 原料</h3>
+<h4>3.1 水田</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">值</th></tr></thead><tbody><tr><td>田数</td><td>3（首发各级不变）</td></tr><tr><td>种子价</td><td>白糯 12，香糯 22，紫糯 22</td></tr><tr><td>生长</td><td>播种即 G0。每次收工 +1 阶。G5 可割（播种后第 5 次收工）</td></tr><tr><td>每茬出米</td><td>白糯 4 斗；香糯 3 斗；紫糯 3 斗</td></tr><tr><td>一季几茬</td><td>不设硬上限。割完田空，当日可再播。第 1 日播下的田在第 6、11、16、21、26 日可割，最多 5 茬；第 26 日那茬来不及走坛装酒</td></tr><tr><td>采收</td><td>要人，1 工时 / 块</td></tr><tr><td>品相</td><td>看<strong>关键三日</strong>：田处于 G2、G3、G4 的那三天（收工后依次进入 G3、G4、G5）是否按当日天气完成照料。3 天完美，2 天优良，0–1 天普通。进入 G5 时定稿，所以 G5 当天割不吃亏</td></tr><tr><td>过熟</td><td>G5 未割，过一次收工转 G6。G6 再过一次收工，品相降一档。普通再降则保持普通，不出传说，也不绝收</td></tr><tr><td>倒伏</td><td>雨日收工时，G4 或 G5 且当日未扶秧：品相降一档。每茬只降一次。普通不再往下降</td></tr><tr><td>暑伤</td><td>暑日收工时，G3–G5 且当日未遮阴：品相降一档。每茬只降一次。普通不再往下降</td></tr></tbody></table></div>
+<p>照料：玩家点一次，或有人在水田站满 1 工时，当日三块田全部算照料。阿青采收时每工时可割 2 块，见 <code>16</code> §3。当日该做哪一件由天气决定，见 <code>02</code> §2.3。做对天气要求的那一件，才计入上面的「完成照料」。</p>
+<h4>3.2 老周的米</h4>
+<p>从第 2 日起，老周每日开坊报价，当日有效。首日不来。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">日子</th><th scope="col">斗数</th><th scope="col">白糯单价</th></tr></thead><tbody><tr><td>平日</td><td>4</td><td>10</td></tr><tr><td>圩日</td><td>6</td><td>8</td></tr><tr><td>雨天</td><td>3</td><td>12</td></tr></tbody></table></div>
+<ul><li>品相：10% 完美，55% 优良，35% 普通。</li><li>品种：2 级前只有白糯。2 级起报价里可出现 2 斗香糯或紫糯，单价 +6。</li><li>买下立刻进入米囤。</li></ul>
+<h4>3.3 米囤与家曲</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">1 级</th><th scope="col">2 级</th><th scope="col">3 级</th><th scope="col">4 级</th></tr></thead><tbody><tr><td>米囤上限（斗）</td><td>16</td><td>20</td><td>28</td><td>36</td></tr></tbody></table></div>
+<ul><li>米囤里的米不过夜降品。米是干料，和田里的稻分开。</li><li>家曲开局 4。每收工若曲案当天拌过至少一批，家曲 +1，上限 8。</li><li>家曲为 0 时不能开始拌曲。向老周买 1 份家曲花费 6 文。</li><li>桂花：3 级起，老周平日 2 朵、圩日 4 朵，单价 6。不用会留着，不腐坏。</li></ul>
+<h3>4. 工站</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">工站</th><th scope="col">人力</th><th scope="col">耗时</th><th scope="col">1 级容量</th><th scope="col">2 级</th><th scope="col">3 级</th><th scope="col">4 级</th></tr></thead><tbody><tr><td>水田采收</td><td>要人</td><td>1 / 块</td><td>—</td><td>—</td><td>—</td><td>—</td></tr><tr><td>浸缸</td><td>计时</td><td>2 / 批</td><td>1 批</td><td>1</td><td>2</td><td>2</td></tr><tr><td>蒸甑</td><td>要人</td><td>1 / 批</td><td>1 甑</td><td>1</td><td>1</td><td>1</td></tr><tr><td>摊席</td><td>计时，看天</td><td>1 / 批</td><td>1 批</td><td>2</td><td>2</td><td>2</td></tr><tr><td>曲案</td><td>要人</td><td>1 / 批</td><td>1 批</td><td>1</td><td>1</td><td>2</td></tr><tr><td>发酵房</td><td>计时</td><td>甜酒酿 3；其余 6</td><td>1 缸</td><td>2</td><td>2</td><td>3</td></tr><tr><td>压榨</td><td>要人</td><td>2 / 批</td><td>1 批</td><td>1</td><td>1</td><td>2</td></tr><tr><td>澄清</td><td>计时</td><td>3 / 批</td><td>1 批</td><td>1</td><td>2</td><td>2</td></tr><tr><td>酒窖</td><td>计时</td><td>短陈 4；长陈再 +4</td><td>2 窖位</td><td>3</td><td>4</td><td>6</td></tr><tr><td>调配</td><td>要人</td><td>1 / 批</td><td>1 批</td><td>1</td><td>1</td><td>1</td></tr><tr><td>前柜</td><td>要人才能成交</td><td>—</td><td>展位 4</td><td>5</td><td>6</td><td>8</td></tr><tr><td>后仓</td><td>—</td><td>—</td><td>12 件</td><td>18</td><td>24</td><td>32</td></tr></tbody></table></div>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">1 级</th><th scope="col">2 级</th><th scope="col">3 级</th><th scope="col">4 级</th></tr></thead><tbody><tr><td>每批上限（斗）</td><td>2</td><td>3</td><td>4</td><td>4</td></tr><tr><td>每批下限（斗）</td><td>2</td><td>2</td><td>2</td><td>2</td></tr><tr><td>在制批次上限（不含米囤、不含后仓）</td><td>3</td><td>3</td><td>4</td><td>5</td></tr><tr><td>可派工人数</td><td>2</td><td>2</td><td>3</td><td>3</td></tr></tbody></table></div>
+<p>甜酒酿发酵 3 工时，窗口中心仍在该批自身进度的 0.50，宽度按天气。 窖位按批计：一批不论几斗、出几坛，只占 1 个窖位。长陈是玩家在下窖时勾选的，占用同一个窖位，时间从 4 改为 8。 后仓满时，做完的成品留在出口站（缸、窖位、澄清槽、调配案），不坏，但占着那一站。 提前离开摊席：记 <code>mix_uneven</code>。提前离开澄清：记 <code>rush_clear</code>。浸缸、发酵总时长、压榨、短陈不可提前完成。</p>
+<h3>5. 品种</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">名称</th><th scope="col">种子价</th><th scope="col">varietyK</th><th scope="col">每茬斗</th><th scope="col">targetRise</th><th scope="col">targetHold</th><th scope="col">targetRest</th><th scope="col">五味倾向</th></tr></thead><tbody><tr><td>var_white</td><td>白糯</td><td>12</td><td>1.00</td><td>4</td><td>0.45</td><td>0.55</td><td>0.50</td><td>均衡</td></tr><tr><td>var_fragrant</td><td>香糯</td><td>22</td><td>1.12</td><td>3</td><td>0.40</td><td>0.50</td><td>0.55</td><td>香</td></tr><tr><td>var_purple</td><td>紫糯</td><td>22</td><td>1.15</td><td>3</td><td>0.50</td><td>0.60</td><td>0.45</td><td>甜、醇</td></tr><tr><td>var_wild</td><td>野生稻</td><td>—</td><td>1.30</td><td>2</td><td>0.55</td><td>0.65</td><td>0.40</td><td>篇章，首发关闭</td></tr></tbody></table></div>
+<p>人手蒸的默认参数等于该品种目标中心。</p>
+<h3>6. 酒路与出数</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">名称</th><th scope="col">每斗出</th><th scope="col">基础单价</th><th scope="col">附加料</th><th scope="col">解锁</th></tr></thead><tbody><tr><td>wine_sweet</td><td>甜酒酿</td><td>2 瓶</td><td>14</td><td>家曲 1 / 批</td><td>1 级</td></tr><tr><td>wine_rice</td><td>米酒</td><td>1 坛</td><td>36</td><td>家曲 1 / 批</td><td>1 级</td></tr><tr><td>wine_clear</td><td>清酒</td><td>1 坛</td><td>44</td><td>家曲 1 / 批</td><td>2 级</td></tr><tr><td>wine_osmanthus</td><td>桂花酿</td><td>1 坛</td><td>52</td><td>家曲 1 + 桂花 1</td><td>3 级</td></tr></tbody></table></div>
+<p>败酿每斗出 1 件：醋基础价 10，料酒 12，饲料 4。饲料也可不卖，抵消当日开销 4 文，每日最多用 1 件。</p>
+<p>收入的上限来自客流，不来自斗数，见 §12。每位客人只买 1 件，所以真正要比的是<strong>每件的价钱</strong>：甜酒酿最便宜但街坊只要它；坛装酒单价高、占窖。</p>
+<h3>7. 成色</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">gradeBase = { normal: 42, good: 64, excellent: 86 }
+handmadeBonus = handmade ? 8 : 0
+quality = clamp(gradeBase + handmadeBonus + pathBonus - 12 × defectCount, 0, 100)</code></pre></div>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">酒路</th><th scope="col">pathBonus</th></tr></thead><tbody><tr><td>甜酒酿</td><td>0</td></tr><tr><td>米酒</td><td>+4</td></tr><tr><td>清酒</td><td>+6</td></tr><tr><td>桂花酿</td><td>+4</td></tr></tbody></table></div>
+<p>火候半宽：三条参数都是 ±0.12。出带规则见 <code>03</code> §2。<code>handmade</code> 要求玩家确认且三条都在带内。 <code>defectCount</code> 是该批当前瑕疵种类数，同一种不叠加。</p>
+<p>败酿线：<code>quality &lt; 36</code> 或 <code>defectCount &gt;= 3</code>。判定点有三处，到线必须改去向：</p>
+<ul><li>有压榨的酒路：压榨开始时。</li><li>清酒：离开澄清槽时再判一次（<code>rush_clear</code> 是唯一会在压榨之后新增的瑕疵）。</li><li>甜酒酿：发酵结束时。</li></ul>
+<p>败酿每斗出 1 件，甜酒酿也一样，不按 2 瓶。</p>
+<p>普通米（42）只要带一种瑕疵就是 30，落到线下。这是有意的：普通米要么交给人手稳稳地蒸、按时搅缸，要么别冒险。</p>
+<h3>8. 五味加减</h3>
+<p>五味初值都是 40。再按下表相加，最后各自 clamp 到 0–100。结构见 <code>13</code> §2。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">来源</th><th scope="col">香</th><th scope="col">甜</th><th scope="col">醇</th><th scope="col">净</th><th scope="col">韵</th></tr></thead><tbody><tr><td>香糯</td><td>+18</td><td>0</td><td>0</td><td>0</td><td>+6</td></tr><tr><td>紫糯</td><td>+4</td><td>+16</td><td>+6</td><td>0</td><td>0</td></tr><tr><td>甜酒酿</td><td>0</td><td>+20</td><td>−4</td><td>−8</td><td>+4</td></tr><tr><td>米酒</td><td>0</td><td>0</td><td>+16</td><td>0</td><td>+8</td></tr><tr><td>清酒</td><td>−4</td><td>−6</td><td>+4</td><td>+22</td><td>+6</td></tr><tr><td>桂花酿</td><td>+20</td><td>+6</td><td>+8</td><td>0</td><td>+10</td></tr><tr><td>长陈</td><td>0</td><td>−4</td><td>+10</td><td>+4</td><td>+8</td></tr><tr><td>完美品相</td><td>+4</td><td>+4</td><td>+4</td><td>+4</td><td>+6</td></tr><tr><td>steam_hard</td><td>0</td><td>−6</td><td>−18</td><td>−10</td><td>−6</td></tr><tr><td>steam_scorch</td><td>−20</td><td>−8</td><td>−6</td><td>−16</td><td>−10</td></tr><tr><td>mix_uneven</td><td>−6</td><td>−4</td><td>−6</td><td>−8</td><td>−14</td></tr><tr><td>stir_miss</td><td>−4</td><td>0</td><td>−8</td><td>−18</td><td>−8</td></tr><tr><td>rush_clear</td><td>−2</td><td>0</td><td>−4</td><td>−16</td><td>−4</td></tr></tbody></table></div>
+<p>白糯不加品种行。短陈不加长陈行。</p>
+<h3>9. 售价</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">tierK = { 让利: 0.85, 平价: 1.00, 讲究: 1.25 }
+price = max(1, round(base × (0.70 + 0.60 × quality / 100) × varietyK × tierK × moodK))</code></pre></div>
+<p><code>moodK</code> 的结构见 <code>13</code> §4，范围 1.00–1.20。</p>
+<p>败酿价用同一条公式：<code>base</code> 换成醋 10 / 料酒 12 / 饲料 4，<code>quality</code> 取拦截时的成色，<code>varietyK</code>、<code>tierK</code>、<code>moodK</code> 照乘。</p>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">批购单价 = round(base × (0.70 + 0.60 × quality / 100) × varietyK × 0.90)</code></pre></div>
+<p>不乘 <code>tierK</code> 和 <code>moodK</code>。每件按自己的成色算。交齐另有声望，见 §10.3。</p>
+<h3>10. 客人、声望、开销</h3>
+<h4>10.1 客流</h4>
+<p>公式结构见 <code>13</code> §3–§4。系数全部在这里：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">符号</th><th scope="col">值</th><th scope="col">用途</th></tr></thead><tbody><tr><td><code>trafficBase</code></td><td>1 级 3，2 级 4，3 级 4，4 级 5</td><td>客流基数</td></tr><tr><td><code>A_ref</code></td><td>36</td><td>氛围归一</td></tr><tr><td><code>A_floor</code></td><td>8</td><td>空院保底</td></tr><tr><td><code>A_normCap</code></td><td>1.2</td><td><code>A_norm</code> 上限（超过 1 的部分不加客流和溢价）</td></tr><tr><td><code>trafficFloor</code> / <code>trafficSpan</code></td><td>0.65 / 0.35</td><td>客流 = 基数 × (floor + span × A_norm)</td></tr><tr><td><code>fairMul</code></td><td>1.5</td><td>圩日客流倍率</td></tr><tr><td><code>rainMinus</code></td><td>1</td><td>雨天少来的人数，客流至少 1</td></tr><tr><td><code>moodSpan</code></td><td>0.20</td><td>moodK 最高溢价</td></tr><tr><td><code>coherenceFloor</code></td><td>0.6</td><td>风格统一度下限</td></tr><tr><td><code>matchMain</code> / <code>matchNeighbor</code> / <code>matchNone</code> / <code>matchOther</code></td><td>1.0 / 0.7 / 0.7 / 0.4</td><td>物件或封签对主导风格的 match</td></tr><tr><td><code>lightPer</code> / <code>lightCap</code></td><td>2 / 4</td><td>每盏暖光灯加分 / 上限</td></tr><tr><td><code>plantPer</code> / <code>plantCap</code></td><td>2 / 4</td><td>每件植物加分 / 上限</td></tr></tbody></table></div>
+<h4>10.2 客人权重</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">名称</th><th scope="col">平日权重</th><th scope="col">圩日额外</th><th scope="col">想要的酒路</th><th scope="col">最低成色</th><th scope="col">接受标价</th><th scope="col">在意的一味</th></tr></thead><tbody><tr><td>guest_neighbor</td><td>街坊</td><td>0.55</td><td>0</td><td>甜酒酿</td><td>36</td><td>让利、平价</td><td>甜</td></tr><tr><td>guest_tea</td><td>茶客</td><td>0.30</td><td>0</td><td>清酒；2 级前改为米酒</td><td>60</td><td>平价、讲究</td><td>净</td></tr><tr><td>guest_merchant</td><td>行商</td><td>0.15</td><td>0</td><td>米酒</td><td>50</td><td>平价</td><td>醇</td></tr><tr><td>guest_fair</td><td>游客</td><td>0</td><td>0.35</td><td>桂花酿；没有则甜酒酿</td><td>64</td><td>讲究、平价</td><td>香</td></tr></tbody></table></div>
+<p>权重在当日客人生成时使用，先归一化。人数等于当日客流。</p>
+<ul><li>到达工时：在第 2–6 工时里抽，同一工时最多 2 位。</li><li><code>tasteOk</code> 阈值：在意的那一味 ≥ 55。</li><li>柜上没人时，客人等到下一个工时；仍没人就离开。</li></ul>
+<h4>10.3 声望</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">事件</th><th scope="col">声望</th></tr></thead><tbody><tr><td>卖出成色 ≥ 70</td><td>+2</td></tr><tr><td>卖出成色 &lt; 70</td><td>+1</td></tr><tr><td>卖出败酿</td><td>0</td></tr><tr><td>客人离开</td><td>0</td></tr><tr><td>批购按时交齐</td><td>+3</td></tr><tr><td>批购逾期</td><td>−2，并退回定金，见 §10.5</td></tr><tr><td>完成常驻委托</td><td>+2</td></tr></tbody></table></div>
+<p>声望 clamp 0–100。</p>
+<h4>10.4 开销与升级</h4>
+<ul><li>每日收工开销 8 文。饲料抵扣最多 4 文，见 §6。</li><li>3 级起可雇一名伙计，日薪 10，当日开坊勾选，当日有效。伙计就是 3 级的第三个人手，没有专长加成。</li><li>玩家本人（当家）不占人手名额，见 <code>16</code> §3。</li><li>升级在收工时支付，次日开坊生效。</li></ul>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">等级</th><th scope="col">花费</th><th scope="col">声望门槛</th><th scope="col">主要解锁</th></tr></thead><tbody><tr><td>2</td><td>280</td><td>25</td><td>清酒、香糯与紫糯种子、米囤与客流</td></tr><tr><td>3</td><td>540</td><td>45</td><td>桂花酿、可雇伙计（第三个人手）、第二口浸缸</td></tr><tr><td>4</td><td>860</td><td>65</td><td>窖位 6、展位 8、在制 5</td></tr></tbody></table></div>
+<p>合计 1680 文。手算见 §12。</p>
+<h4>10.5 批购与常驻委托</h4>
+<p>批购木牌从第 3 日起，开坊时若空着，按等级抽一张。同一天只挂一张。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">等级</th><th scope="col">酒路</th><th scope="col">件数</th><th scope="col">交期</th><th scope="col">定金</th><th scope="col">每件最低成色</th></tr></thead><tbody><tr><td>1–2</td><td>米酒</td><td>2</td><td>5 日</td><td>20</td><td>50</td></tr><tr><td>3</td><td>米酒或清酒</td><td>3</td><td>5 日</td><td>30</td><td>50</td></tr><tr><td>4</td><td>清酒或桂花酿</td><td>3</td><td>4 日</td><td>40</td><td>50</td></tr></tbody></table></div>
+<ul><li>交齐：每件按 §9 的批购单价结算，定金算在总价里（尾款 = 总价 − 定金，最少 0）。声望 +3。</li><li>逾期：声望 −2，<strong>退回定金</strong>（文不足时扣到 0）。退定金是为了不让「接了不交」变成白拿定金。</li></ul>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">委托</th><th scope="col">谁</th><th scope="col">要什么</th><th scope="col">何时可接</th></tr></thead><tbody><tr><td>task_sweet</td><td>阿青</td><td>1 瓶甜酒酿，成色 ≥ 36</td><td>卖出过任意 1 件之后</td></tr><tr><td>task_rice</td><td>阿禾</td><td>1 坛米酒，成色 ≥ 50</td><td>上一件完成后</td></tr><tr><td>task_clear</td><td>阿禾</td><td>1 坛清酒，成色 ≥ 60</td><td>酒坊 2 级且上一件完成</td></tr></tbody></table></div>
+<p>委托奖励固定为声望 +2、酿艺点 +2，不发现金。</p>
+<h3>11. 酿艺点与技能</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">行为</th><th scope="col">酿艺点</th></tr></thead><tbody><tr><td>玩家亲手蒸完一批，三条参数都在带内</td><td>+2</td></tr><tr><td>玩家亲手蒸完，但有参数出带</td><td>+1</td></tr><tr><td>在窗口内搅缸</td><td>+1</td></tr><tr><td>完成常驻委托</td><td>+2</td></tr></tbody></table></div>
+<p>技能价格：第一层每项 4，第二层每项 6。树的结构见 <code>10</code>。技能不改 §7 的公式，只改容量、窗口提前量或默认火候是否可见。</p>
+<ul><li>技能「早看缸」：搅缸窗口起点提前 0.5 工时，宽度不变。</li><li>技能「火候眼」：蒸饭前显示目标带。未学时仍可蒸，只是不标出中心。</li><li>技能「识天」：田边直接写出今日照料动词；<code>06</code> §5 的推进提醒从收工前 1 工时提前到 2 工时。不增加预报天数。</li><li>技能「田埂」：水田无人时，收工仍视为三块田已按天气照料。不增加产量。</li><li>酒谱默认保留 16 条。「记名」后为 24 条。</li><li>封签色开局 3 种。「封签」技能再解锁 2 种。瓶型开局 2 种，3 级再开 1 种，不靠技能。</li></ul>
+<h4>11.1 好感</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">人物</th><th scope="col">开局</th><th scope="col">口味对上</th><th scope="col">其余赠酒</th></tr></thead><tbody><tr><td>阿禾</td><td>20</td><td>+3</td><td>+1</td></tr><tr><td>阿青</td><td>12</td><td>+3</td><td>+1</td></tr><tr><td>老周</td><td>0</td><td>+2</td><td>+1</td></tr></tbody></table></div>
+<ul><li>口味对上：这件酒在该人物所看的那一味上 ≥ 55。阿禾看净，阿青看甜，老周看醇。</li><li>每人每个酒坊日最多收 1 件。败酿不加好感。</li><li>好感 clamp 到 0–100。30 多一句日常，60 可听旧事，90 只改称呼。</li><li>阿禾达到 60 是夜泉触发条件之一，见 <code>11</code>。好感不改进价、成色和客流。</li></ul>
+<h3>12. 经济手算</h3>
+<h4>12.1 先看清瓶颈</h4>
+<p>产能远大于需求。1 级三块田加老周，每天能供 6 斗上下的米；一口发酵缸一天能出 2–3 坛米酒，或 8–10 瓶甜酒酿。可开局客流每天只有 2 位，每位只买 1 件。所以这一季的收入由<strong>客流 × 每位客人带来的钱</strong>决定，不由斗数决定。</p>
+<p>这正是想要的手感：多酿不等于多赚。玩家要想的是给每位客人放一件对的酒——茶客要讲究档的清酒，游客要桂花酿，批购吃掉多出来的坛装酒。</p>
+<h4>12.2 口径</h4>
+<ul><li>模型：<code>tools/econ_handcalc.py</code>。逐日期望值，不掷骰。</li><li>布置不加（A = 18），封签同风格，moodK 1.10。布置的花费没有计入。</li><li>全部白糯、优良、人手蒸、无瑕疵。单价：甜酒酿平价 17，米酒平价 44，清酒讲究 68，桂花酿讲究 79。批购单价按 §9：米酒 36，清酒 44，桂花酿 52。</li><li>成本：每瓶甜酒酿 3 文、每坛 8–9 文（米、曲、桂花摊下来）；开销每日 8；3 级起每日雇伙计 10。</li><li>成交率 0.85，代表缺货、档不合、没人站柜的折损。</li><li>米酒从第 2 日起有货（开局批 A）。清酒、桂花酿在解锁后第 2 日才有货。</li><li>批购在第 3、9、15、21 日接下，都按时交齐。</li><li>钱和声望都够时，在收工时升级，并留 30 文余量。</li></ul>
+<h4>12.3 结果</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">布置 A</th><th scope="col">成交率</th><th scope="col">到 2 级</th><th scope="col">到 3 级</th><th scope="col">到 4 级</th><th scope="col">第 28 日余钱</th></tr></thead><tbody><tr><td>18</td><td>0.70</td><td>第 7 日</td><td>第 16 日</td><td>第 28 日收工才付款，本季用不上</td><td>56</td></tr><tr><td>18</td><td><strong>0.85（中线）</strong></td><td><strong>第 7 日</strong></td><td><strong>第 15 日</strong></td><td><strong>第 25 日</strong></td><td>567</td></tr><tr><td>18</td><td>0.95</td><td>第 6 日</td><td>第 14 日</td><td>第 22 日</td><td>948</td></tr><tr><td>36</td><td>0.85</td><td>第 5 日</td><td>第 11 日</td><td>第 18 日</td><td>1960</td></tr></tbody></table></div>
+<p>中线里，卡人的是钱，不是声望：声望在第 11 日前后就过了 45，第 16 日过了 65。声望门槛只拦得住几乎不成交的打法。</p>
+<h4>12.4 结论</h4>
+<ul><li>升级花费定为 280 / 540 / 860（合计 1680），声望门槛 25 / 45 / 65。中线落在第 7、15、25 日，对上 <code>10</code> §5「大约一周一级」的节奏。</li><li>2 级是第一个拐点：茶客从买 44 文的米酒变成买 68 文的讲究档清酒。3 级的桂花酿让圩日游客从 17 文变成 79 文。</li><li>布置是很大的杠杆：A 从 18 提到 36，中线提前约 7 日到 4 级。所以器物价格（<code>furniture.json</code>）必须让 A 提到 36 花掉一笔像样的钱。<strong>器物价格尚未定，是 0.2 的待补项</strong>，补完后重跑本节。</li><li>只做甜酒酿不够：街坊每件只带来 14 文毛利，到不了 4 级。只做坛装酒也不够：一半客人是街坊，他们只要甜酒酿。</li><li>本节是期望值，不是分布。蒙特卡洛模拟器 <code>tools/sim_economy.py</code> 落地后，用 300 次、28 日的中位数替换本节。</li></ul>
+<h3>13. 表现预算</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">上限</th></tr></thead><tbody><tr><td>蒸甑特写粒子</td><td>48</td></tr><tr><td>单口缸的气泡粒子</td><td>24</td></tr><tr><td>入夜酒香粒子（全院）</td><td>36</td></tr><tr><td>萤火（入夜，装饰）</td><td>16</td></tr><tr><td>同屏米饭形态键</td><td>1</td></tr><tr><td>稻丛实例</td><td>每块田 80，三块 240</td></tr><tr><td>常驻角色面数</td><td>4000</td></tr><tr><td>酒坛 / 酒瓶</td><td>500</td></tr><tr><td>发酵缸</td><td>800</td></tr><tr><td>道具贴图边长</td><td>512</td></tr><tr><td>角色贴图边长</td><td>1024</td></tr><tr><td>院景图集边长</td><td>2048</td></tr></tbody></table></div>
+<p>粒子不进存档。面数是三角面上限。</p>
+<h3>14. 工程门槛与关闭着的接口</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">值</th></tr></thead><tbody><tr><td>首发分辨率</td><td>1920×1080</td></tr><tr><td>院景、蒸甑特写目标帧率</td><td>60</td></tr><tr><td>好友帮收（默认关）</td><td>一个酒坊日最多 1 块田，产量 +1 斗</td></tr><tr><td>活动客流倍率（默认关）</td><td>单活动 ≤ 1.2；与圩日叠乘后的客流倍率 ≤ 1.8</td></tr></tbody></table></div>
+<p>包体和内存不在未实测前写死。测到的记录记在 <code>22</code>。</p></section><section id="05_配置表结构" class="chapter" data-title="配置表结构" tabindex="-1"><div class="chapter-kicker">文档 05</div><h2>配置表结构</h2>
+<p>版本：0.2 · 2026-10-01 主责：表有哪些、字段叫什么、ID 怎么写。字段里的数字必须与 <code>04</code> 一致，表里不发明第二套价格。运行时对象见 <code>21</code>。</p>
+<h3>1. 约定</h3>
+<ul><li>路径：<code>content/</code>。UTF-8 JSON。</li><li>ID：小写英文与下划线，前缀表达种类，如 <code>var_white</code>、<code>wine_rice</code>、<code>guest_tea</code>。</li><li>枚举用英文码，界面文案用 <code>name</code>。</li><li>耗时单位是工时，可以是小数。价格单位是文。</li><li>首发关闭的行照样进表，<code>enabled: false</code>。加载时跳过，存档里若出现则拒绝读入，见 <code>21</code>。</li></ul>
+<h3>2. 表清单</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">文件</th><th scope="col">内容</th></tr></thead><tbody><tr><td><code>start_state.json</code></td><td>开局院况，含后仓 4 瓶甜酒酿</td></tr><tr><td><code>economy.json</code></td><td>开销、伙计日薪、客人到达工时、<code>tasteOk</code> 阈值、<code>04</code> §10.1 的氛围与客流系数</td></tr><tr><td><code>calendar.json</code></td><td>周长、季长、圩日、天气概率、首三日</td></tr><tr><td><code>workshop_levels.json</code></td><td>1–4 级容量、升级花费、声望门槛</td></tr><tr><td><code>varieties.json</code></td><td>稻种、目标火候、varietyK</td></tr><tr><td><code>growth_stages.json</code></td><td>G0–G6 的显示名和能否收割</td></tr><tr><td><code>supply.json</code></td><td>老周的米、曲、桂花</td></tr><tr><td><code>stations.json</code></td><td>工站耗时、要不要人、提前离开的后果</td></tr><tr><td><code>wine_paths.json</code></td><td>酒路经过哪些站、出数、基础价、解锁等级</td></tr><tr><td><code>defects.json</code></td><td>瑕疵 ID 与显示名</td></tr><tr><td><code>fails.json</code></td><td>醋、料酒、饲料</td></tr><tr><td><code>taste_mods.json</code></td><td>五味加减行</td></tr><tr><td><code>guests.json</code></td><td>客群权重、酒路、成色、标价档</td></tr><tr><td><code>skills.json</code></td><td>技能价格与效果 ID</td></tr><tr><td><code>furniture.json</code></td><td>可摆件、氛围、风格标签、区域</td></tr><tr><td><code>lights.json</code> / <code>plants.json</code></td><td>灯与植物，结构同家具，另有 <code>warm</code></td></tr><tr><td><code>styles.json</code></td><td>风格与相邻</td></tr><tr><td><code>zones.json</code></td><td>区域权重、禁止占用</td></tr><tr><td><code>npcs.json</code></td><td>常驻、专长、委托</td></tr><tr><td><code>dialogues.json</code></td><td>对话行</td></tr><tr><td><code>orders.json</code></td><td>批购模板与常驻委托</td></tr><tr><td><code>activities.json</code></td><td>活动修正，默认 <code>enabled: false</code></td></tr><tr><td><code>products_visual.json</code></td><td>瓶坛网格、封签色及其 <code>styleId</code></td></tr><tr><td><code>iap.json</code></td><td>外观商品，默认不加载，见 <code>25</code> §4</td></tr></tbody></table></div>
+<h3>3. 字段</h3>
+<h4>stations.json</h4>
+<div class="code-wrap"><div class="code-label">JSON</div><pre><code class="language-json">{
+  &quot;id&quot;: &quot;station_ferment&quot;,
+  &quot;name&quot;: &quot;发酵房&quot;,
+  &quot;mode&quot;: &quot;timer&quot;,
+  &quot;hours&quot;: { &quot;wine_sweet&quot;: 3, &quot;default&quot;: 6 },
+  &quot;needsWorker&quot;: false,
+  &quot;earlyLeave&quot;: &quot;forbid&quot;
+}</code></pre></div>
+<p><code>mode</code>：<code>timer</code> 或 <code>worker</code>。<code>earlyLeave</code>：<code>forbid</code>、<code>mix_uneven</code>、<code>rush_clear</code>。</p>
+<h4>varieties.json</h4>
+<p><code>id</code>，<code>name</code>，<code>seedPrice</code>，<code>yield</code>，<code>varietyK</code>，<code>targetRise</code>，<code>targetHold</code>，<code>targetRest</code>，<code>enabled</code>。</p>
+<h4>wine_paths.json</h4>
+<p><code>id</code>，<code>name</code>，<code>stations</code>（有序工站 ID 数组），<code>perDou</code>，<code>unit</code>（<code>jar</code> 或 <code>bottle</code>），<code>basePrice</code>，<code>pathBonus</code>，<code>unlockLevel</code>，<code>koji</code>，<code>adjunct</code>，<code>enabled</code>。</p>
+<p>甜酒酿的 <code>stations</code> 不含 <code>station_press</code>。桂花酿在米酒站序之后加 <code>station_blend</code>。</p>
+<h4>workshop_levels.json</h4>
+<p><code>level</code>，<code>cost</code>，<code>renown</code>，<code>trafficBase</code>，<code>batchMax</code>，<code>batchMin</code>，<code>activeBatches</code>，<code>workers</code>，<code>granary</code>，<code>cellarSlots</code>（按批计），<code>counterSlots</code>，<code>storeSlots</code>，以及各站容量。名字与 <code>04</code> §4、§10 的列一一对应。</p>
+<h4>guests.json</h4>
+<p><code>id</code>，<code>name</code>，<code>weight</code>，<code>fairWeight</code>，<code>pathIds</code>，<code>minQuality</code>，<code>tiers</code>，<code>taste</code>（在意的一味），<code>enabled</code>。</p>
+<h4>taste_mods.json</h4>
+<p><code>source</code>（品种、酒路、<code>long_age</code>、<code>excellent</code>、瑕疵 ID），<code>xiang</code>，<code>tian</code>，<code>chun</code>，<code>jing</code>，<code>yun</code>。</p>
+<h4>furniture.json</h4>
+<p><code>id</code>，<code>name</code>，<code>zoneIds</code>，<code>styleIds</code>，<code>atmosphere</code>，<code>footprint</code>（格），<code>price</code>，<code>unlockLevel</code>，<code>blocksPath</code>（必须为 false 的物件才会被校验通过）。</p>
+<h4>npcs.json</h4>
+<p><code>id</code>，<code>name</code>，<code>giftTaste</code>（<code>xiang</code> / <code>tian</code> / <code>chun</code> / <code>jing</code> / <code>yun</code>），<code>startAffinity</code>，<code>enabled</code>。首发常驻不填耗时倍率。专长规则见 <code>16</code> §3，好感数字见 <code>04</code> §11.1。</p>
+<h4>orders.json</h4>
+<p>批购：<code>id</code>，<code>levelMin</code>，<code>levelMax</code>，<code>pathIds</code>，<code>count</code>，<code>dueDays</code>，<code>deposit</code>，<code>minQuality</code>，<code>enabled</code>。 委托：<code>id</code>，<code>npcId</code>，<code>pathId</code>，<code>minQuality</code>，<code>after</code>（前置委托或条件），<code>rewardRenown</code>，<code>rewardCraft</code>，<code>enabled</code>。数字见 <code>04</code> §10.5，表是落地处。</p>
+<h4>products_visual.json</h4>
+<p>瓶坛：<code>id</code>，<code>unit</code>（<code>jar</code> / <code>bottle</code>），<code>mesh</code>，<code>unlock</code>。 封签：<code>id</code>，<code>name</code>，<code>color</code>，<code>styleId</code>，<code>unlock</code>（<code>start</code>、<code>skill_seal</code>、<code>level_3</code>、<code>activity</code>）。开局三种封签都是 <code>water_glow</code>，<code>13</code> §4 的 <code>styleMatch</code> 从这里取。</p>
+<h4>activities.json</h4>
+<p><code>id</code>，<code>enabled</code>，<code>modifiers</code>。允许的键只有 <code>23</code> 列出的白名单。</p>
+<h3>4. 入库校验</h3>
+<p>加载失败就停在标题画面，不进半套表。</p>
+<ul><li>每个 ID 唯一。</li><li><code>wine_paths.stations</code> 里的每个 ID 都存在于 <code>stations</code>。</li><li>甜酒酿不得包含压榨、澄清、酒窖。</li><li>清酒必须包含澄清。桂花酿必须包含调配，且 <code>unlockLevel &gt;= 3</code>。</li><li><code>enabled: false</code> 的品种不得出现在 <code>start_state</code>。</li><li><code>start_state</code> 的批 A 进度必须落在晴天搅缸窗口内；开局人手不得站在发酵房（否则阿禾会替玩家搅掉首日引导的第一步）。</li><li>升级花费、声望门槛、种子价、基础单价、客流基数、批购表与 <code>04</code> 不一致时，校验失败。</li><li>家具 <code>blocksPath == true</code> 直接失败。通路不由美术单件决定。</li></ul></section><section id="06_种植系统详细设计" class="chapter" data-title="水田与收稻" tabindex="-1"><div class="chapter-kicker">文档 06</div><h2>水田与收稻</h2>
+<p>版本：0.2 · 2026-10-01 主责：稻怎么长、当日照料哪一件、品相怎么来、米怎么进囤。数字见 <code>04</code> §3。酒怎么用这些米见 <code>07</code>。</p>
+<h3>1. 设计目标</h3>
+<p>三块田要让玩家看见稻从秧到黄，并且让天气变成一件具体的事：今天扶秧，或今天遮阴。 产量由品种决定，不由手速决定。品相由关键几天有没有做对那一件事决定。</p>
+<h3>2. 田</h3>
+<p>首发三块，都是水田。旱田、温室不进首发，也不进表。篇章用的野稻空位在田埂尽头，<code>enabled: false</code>，见 <code>11</code>。</p>
+<h4>2.1 阶段</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">阶段</th><th scope="col">名称</th><th scope="col">玩家看到</th></tr></thead><tbody><tr><td>空</td><td>空田</td><td>水面</td></tr><tr><td>G0</td><td>播种</td><td>浅浅的行</td></tr><tr><td>G1</td><td>返青</td><td>短绿</td></tr><tr><td>G2</td><td>分蘖</td><td>行被叶子盖住</td></tr><tr><td>G3</td><td>孕穗</td><td>抽穗</td></tr><tr><td>G4</td><td>灌浆</td><td>穗低头，仍绿</td></tr><tr><td>G5</td><td>黄熟</td><td>穗黄，可割</td></tr><tr><td>G6</td><td>过熟</td><td>穗发白，仍可割</td></tr></tbody></table></div>
+<p>每次收工，已播种的田 +1 阶。没有「停止生长直到浇水」。没照料的后果在品相和天气灾上，不在阶段上。</p>
+<h4>2.2 当日那一件</h4>
+<p>开坊时按天气生成当日照料，全院相同：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">天气</th><th scope="col">照料</th><th scope="col">做了什么</th></tr></thead><tbody><tr><td>晴</td><td>浇水</td><td>田埂水线升高一档（表现）</td></tr><tr><td>阴</td><td>除草</td><td>田边草点消失</td></tr><tr><td>雨</td><td>扶秧</td><td>稻束被拢住。未做则 G4–G5 倒伏</td></tr><tr><td>暑</td><td>遮阴</td><td>田上拉出一层薄席。未做则 G3–G5 暑伤</td></tr></tbody></table></div>
+<p>玩家对一块田点一次，或水田工站有人站满 1 工时，则三块已播种的田都算完成。空田不需要照料。 界面只出现这一件的动词，不并列浇水、施肥、除草、防虫四个按钮。施肥不单列，种子价里已经包含这一季的底肥。</p>
+<h4>2.3 品相</h4>
+<p>只统计<strong>关键三日</strong>：田处于 G2、G3、G4 的那三天，也就是收工后会进入 G3、G4、G5 的三天，是否完成当日照料。进入 G5 时品相定稿，所以 G5 当天割不吃亏。倒伏、暑伤、过熟在定稿后照样可以降档，见 <code>04</code> §3.1。 完美、优良、普通用穗的整齐度和一枚始终在场的小印章区分，不只用颜色。</p>
+<h4>2.4 采收</h4>
+<ul><li>G5、G6 可割。割下的斗进入米囤，带品种和当时品相。</li><li>割完立刻空田，当日可以再播。</li><li>1 工时割 1 块。阿青在水田时，1 工时割 2 块。</li><li>收割表现是挥一下、稻束倒向田埂、扬起少量碎屑。碎屑数量用 <code>04</code> §13 的粒子预算里的装饰额度，不新开上限。判定与点击次数无关，点一次即进入工时。</li></ul>
+<h3>3. 老周的米</h3>
+<p>老周不是第二套种植。他用来补：第一茬还没黄、或者玩家把米酿失败之后的空档。报价和品相见 <code>04</code> §3.2。 米囤里同时有自种和买来的米时，组批仍要求同品种、同品相。来源记在斗上，供日结写「这批是田里的」或「这批是老周的」，不改成色公式。</p>
+<h3>4. 组批</h3>
+<p>玩家在米囤旁把斗拖成一批。不足下限不能上浸缸。超过上限的斗留在囤里。 组批不消耗工时。选定酒路前，这批还不算在制。酒路写入并放入浸缸的那一刻，占用在制名额。此时不扣任何辅料：家曲在曲案开始时扣，桂花在调配站扣，见 <code>07</code> §6、§8。</p>
+<h3>5. 推进提醒</h3>
+<p>离收工 1 工时（学了「识天」为 2 工时，见 <code>04</code> §11），若存在「今晚会倒伏或暑伤」的田，且今日未照料，推进在这里停一次。停的是提醒，不自动照料。</p>
+<h3>6. 图鉴</h3>
+<p>稻种图鉴三格：白糯、香糯、紫糯。种过一次即点亮。野生稻的格子在首发不显示。 图鉴不给属性加成。</p>
+<h3>7. 与酿造的接口</h3>
+<p>水田系统在米进入米囤时结束。它交出 <code>varietyId</code> 和 <code>grade</code>。 它不交出五味。五味从出酒时才有，见 <code>13</code>。</p></section><section id="07_酿造工序完整设计" class="chapter" data-title="酿造工序" tabindex="-1"><div class="chapter-kicker">文档 07</div><h2>酿造工序</h2>
+<p>版本：0.2 · 2026-10-01 主责：一批酒经过哪些站、什么时候记瑕疵、什么时候算成色、败酿怎么分叉。耗时、容量、加减值见 <code>04</code>。蒸甑特写见 <code>03</code>。</p>
+<h3>1. 一批身上有什么</h3>
+<p>从组批起，批次固定这些字段，中途只按本文件的规则改：</p>
+<ul><li><code>varietyId</code>，<code>grade</code>，<code>dou</code></li><li><code>pathId</code></li><li><code>stationId</code>，<code>hoursLeft</code></li><li><code>defects[]</code></li><li><code>handmade</code>（蒸甑是否玩家确认）</li><li><code>stirred</code>（是否在窗口内搅过）</li><li><code>longAge</code>（下窖时是否勾选长陈）</li><li><code>name</code>，<code>sealId</code>，<code>bottleId</code>（出成品时写入，之前可空）</li></ul>
+<p>斗在一批里不可拆。出酒时按 <code>04</code> §6 把整批换成若干瓶或坛，这些成品共享同一组成色和五味。</p>
+<h3>2. 酒路</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">酒路</th><th scope="col">站序</th></tr></thead><tbody><tr><td>甜酒酿</td><td>浸缸 → 蒸甑 → 摊席 → 曲案 → 发酵房 → 装瓶</td></tr><tr><td>米酒</td><td>浸缸 → 蒸甑 → 摊席 → 曲案 → 发酵房 → 压榨 → 酒窖 → 装坛</td></tr><tr><td>清酒</td><td>在米酒的压榨之后、酒窖之前插入澄清</td></tr><tr><td>桂花酿</td><td>米酒站序，酒窖之后、装坛之前插入调配</td></tr></tbody></table></div>
+<p>未解锁的酒路不能选。1 级只有甜酒酿和米酒。</p>
+<h3>3. 浸缸</h3>
+<p>计时。淘米和浸泡并在这一站，不单做淘米小游戏。时间走完才能上甑。不能提前离开。</p>
+<h3>4. 蒸甑</h3>
+<p>要人。工时见 <code>04</code>。</p>
+<ul><li>玩家进入特写：按 <code>03</code> 写瑕疵和 <code>handmade</code>。</li><li>人手：参数取品种目标中心，无蒸饭瑕疵，<code>handmade = false</code>。</li><li>亲手蒸也要蒸甑上有人手在岗：人手烧火，当家掌火候。</li><li>没人时，浸缸已完成的批停在甑前，不坏。</li></ul>
+<p>火候不改变这一站的工时。</p>
+<h3>5. 摊席</h3>
+<p>计时，速度看天气。雨天席在檐下，进度保留，只是变慢。 玩家可以把一批提前送去曲案，立即记 <code>mix_uneven</code>，并开始曲案。这是唯一允许的「没凉透就拌」。</p>
+<h3>6. 曲案</h3>
+<p>要人。开始时扣 1 份家曲。家曲不足则不能开始，批停在曲案前，不坏。 桂花不在这里扣。桂花在调配站扣。 拌曲由人手做。首发只有家曲一种，玩家不用选。没有第二套搅拌条，也没有亲手拌曲的加成。</p>
+<h3>7. 发酵房</h3>
+<p>计时。甜酒酿 3 工时，其他酒路 6 工时。</p>
+<p>窗口：进度 0.50 为中心，宽度见 <code>04</code> §2.3。进入窗口时，若玩家打开了推进，时间停一次。</p>
+<ul><li>窗口内有人搅缸，或玩家在窗口内点搅：<code>stirred = true</code>。</li><li>窗口结束时 <code>stirred</code> 仍为 false：记 <code>stir_miss</code>。缸继续走完，不销毁。</li><li>窗口外点搅：无效果，不额外记瑕疵。</li></ul>
+<p>暑天窗口更窄，总时长不变。缸的气泡在进度 0.3 之后出现，窗口期内气泡更密，密的是表现，判定只看有没有在窗口内搅过。</p>
+<p>技能「早看缸」只把起点提前，见 <code>04</code> §11。</p>
+<h3>8. 压榨、澄清、酒窖、调配</h3>
+<ul><li>压榨要人。开始前先做败酿判定，见 §9。通过则出酒液，进入下一站。</li><li>澄清只属于清酒。提前离开记 <code>rush_clear</code>。</li><li>下窖时选择短陈或长陈。长陈把该批 <code>hoursLeft</code> 设为 8，并标记 <code>longAge</code>。窖位按批计。窖位不足就不能下窖，批停在窖口，不坏。</li><li>调配要人，扣 1 份桂花。桂花不足则停在调配案。没有「不加桂花也叫桂花酿」。</li></ul>
+<p>装瓶或装坛时，玩家写酒名（1–8 个字，默认为酒路名），选已解锁的瓶型和封签色。不选则用默认瓶和默认封签。名字和封签不进成色；封签的风格会进 <code>moodK</code>，见 <code>13</code> §4。</p>
+<p>后仓满时，成品留在出口站（发酵房的缸、窖位、澄清槽、调配案），不坏，但占着那一站，不能接下一批。</p>
+<h3>9. 成色与败酿</h3>
+<p>离开发酵房时先结算成色，公式见 <code>04</code> §7。之后若再获得 <code>rush_clear</code>，成色按瑕疵数重算一次。</p>
+<p>败酿线：<code>quality &lt; 36</code> 或瑕疵种类 ≥ 3。</p>
+<ul><li>有压榨的酒路：在压榨开始时拦截，玩家三选一：醋、料酒、饲料。</li><li>清酒：离开澄清槽时再判一次。<code>rush_clear</code> 是唯一会在压榨之后新增的瑕疵，所以只需要这一个第二判定点。</li><li>甜酒酿：在发酵结束时拦截，同样三选一。</li><li>选定后移除酒路，成品记为败酿类型，不再进入后续酒站。</li></ul>
+<p>败酿可以上柜，但首发没有客人以败酿为目标，等于卖不掉，除非以后的活动显式允许。饲料可以留着抵开销。</p>
+<h3>10. 五味何时计算</h3>
+<p>成品装瓶装坛时算一次，写入成品，之后不随天气改变。五味结构见 <code>13</code>，加减见 <code>04</code> §8。 酒谱展示五味，前柜匹配用同一份数据。</p>
+<h3>11. 可见状态</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">状态</th><th scope="col">形状</th></tr></thead><tbody><tr><td>浸缸中</td><td>米在水面下，水面有浅纹</td></tr><tr><td>待蒸</td><td>甑空，旁边一筐湿米</td></tr><tr><td>夹生饭</td><td>饭床颗粒分开</td></tr><tr><td>正好的饭</td><td>饭床合拢、一块高光</td></tr><tr><td>焦边</td><td>饭床边缘缺一块亮，呈硬边</td></tr><tr><td>发酵中</td><td>缸盖缝有气泡</td></tr><tr><td>该搅了</td><td>缸沿一圈亮木环，并有固定图标</td></tr><tr><td>短陈 / 长陈</td><td>坛绳一道 / 两道</td></tr><tr><td>败酿</td><td>坛嘴加布盖，不贴酒封签</td></tr></tbody></table></div>
+<h3>12. 现实对照</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">游戏里的站</th><th scope="col">参照的手工关系</th><th scope="col">游戏里的压缩</th></tr></thead><tbody><tr><td>浸缸</td><td>淘净再浸泡</td><td>合并，不单做淘米</td></tr><tr><td>蒸甑</td><td>蒸到饭熟、不糊</td><td>三条火候，1 工时</td></tr><tr><td>摊席</td><td>摊凉到能拌曲</td><td>1 工时，可提前并记瑕疵</td></tr><tr><td>曲案</td><td>拌曲</td><td>只选已有的曲，首发不培养菌种</td></tr><tr><td>发酵房</td><td>发酵中途开耙、搅动</td><td>一个窗口，错过记瑕疵</td></tr><tr><td>压榨</td><td>酒糟分离</td><td>要人，2 工时</td></tr><tr><td>澄清、酒窖</td><td>静置与坛装存放</td><td>数工时，不是数月</td></tr><tr><td>调配</td><td>成品后加桂花一类辅料</td><td>只在桂花酿</td></tr></tbody></table></div>
+<p>文案不写酒精度、糖化酶、温度摄氏度。温度在界面里是「缸是温的」「缸太热」，暑天用窗口变窄来表示，不出现数字温度。</p>
+<h3>13. 不做</h3>
+<ul><li>酒曲杂交、孢子采集、菌种小游戏。家曲是每日拌曲后回一份的消耗品。</li><li>逐小时温度曲线经营。窗口只有一段。</li><li>失败即倒掉。</li><li>在缸里捏饭或在蒸甑里调配桂花。</li></ul></section><section id="08_经营与销售系统" class="chapter" data-title="前柜、客人与圩日" tabindex="-1"><div class="chapter-kicker">文档 08</div><h2>前柜、客人与圩日</h2>
+<p>版本：0.2 · 2026-10-01 主责：谁来买、怎么匹配、为什么成交或离开、老周的批购怎么交货。价格公式见 <code>04</code> §9。客流和溢价结构见 <code>13</code>。人物委托见 <code>16</code>。</p>
+<h3>1. 两条销路</h3>
+<ul><li>前柜：当天客人一单一件，看酒路、成色和标价档。</li><li>批购：老周挂在河埠的木牌上，要若干件同一酒路，有交期和定金。</li></ul>
+<p>败酿可以上架，但首发客人的目标酒路都不包含败酿。败酿的销路是饲料抵开销，或偶尔以让利挂着等活动；活动未开时，默认没有人买。</p>
+<h3>2. 前柜</h3>
+<h4>2.1 展位与后仓</h4>
+<p>展位数量见 <code>04</code> §4。后仓里的酒客人不看见。玩家把酒从后仓拖到展位，拖回去也行，不耗工时。 一件酒同时只在一个地方：后仓、展位，或「留给批购」。留给批购的件不能上架，也不能送人或交委托。</p>
+<p>入夜（工时 7–8）不生成新客人。白天已经进门、还没说话的客人会在入夜前说完。</p>
+<h4>2.2 标价档</h4>
+<p>上架时选让利、平价或讲究。改档立即改价，公式见 <code>04</code> §9。当日氛围已经算完，改布置不改今天的 moodK；改档会改 tierK。</p>
+<h3>3. 客人</h3>
+<h4>3.1 当日客人从哪来</h4>
+<p>开坊时：</p>
+<ol><li>按 <code>13</code> 算出客流。</li><li>用 <code>hash(profileId, dayIndex, slot)</code> 从客人池抽满人数。</li><li>给每位客人一个到达工时。范围和同一工时的人数上限见 <code>04</code> §10.2。</li></ol>
+<p>权重见 <code>04</code> §10.2。茶客在清酒未解锁时，目标酒路改为米酒。游客只在圩日加入。</p>
+<h4>3.2 客人亮出什么</h4>
+<p>走到柜台时，气泡只说三件事里的两件：想要的酒路、在意的那一味、能接受的标价档。在意的一味见 <code>04</code> §10.2 的「在意」列（街坊看甜、茶客看净、行商看醇、游客看香）。</p>
+<p>不显示匹配分。</p>
+<h3>4. 匹配与成交</h3>
+<p>有人手在前柜，客人才会买。当家不算站柜的人，见 <code>16</code> §3。没人时客人等到下一个工时，仍没人就离开，主因是「柜上没有人」。</p>
+<p>对展位上每一件算：</p>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">pathOk    = 酒路在客人的 pathIds 里
+qualityOk = quality &gt;= minQuality
+tierOk    = 标价档在客人的 tiers 里
+tasteOk   = 在意的那一味 &gt;= tasteOk 阈值（04 §10.2）</code></pre></div>
+<p>成交顺序：</p>
+<ol><li>没有 <code>pathOk</code> 的件，跳过。</li><li>在剩下的件里，去掉 <code>qualityOk</code> 或 <code>tierOk</code> 失败的。</li><li>若一件不剩，客人离开。主因按这个优先级取第一条：酒路不对、成色不够、标价不合。</li><li>剩下的件里，优先 <code>tasteOk</code>。若都没有 <code>tasteOk</code>，仍可买成色最高的那件，离开理由不触发。</li><li>并列时买成色高的。再并列时买先上架的。</li></ol>
+<p>卖出后从展位移除，加钱和声望，见 <code>04</code> §10.3。一件客人只买一件。</p>
+<p>街坊的最低成色是 36，正好卡在败酿线之上，所以合格的甜酒酿他们会拿，败酿他们不拿。</p>
+<h3>5. 批购</h3>
+<h4>5.1 木牌</h4>
+<p>从第 3 日起，开坊时若木牌空着，按等级抽一张。各级的酒路、件数、交期、定金、成色要求见 <code>04</code> §10.5。</p>
+<p>同一天只挂一张。玩家可以不接。接了定金进账，交期从次日开始数。</p>
+<h4>5.2 交付</h4>
+<p>交期当天收工时结算。先用「留给批购」的件，不够再从后仓按成色从低到高补，只取同酒路、成色达标的件。凑够件数即算交齐。玩家也可以在交期内任何一天提前交。 交齐：按 <code>04</code> §9 的批购单价结算每件，定金算在总价里（尾款 = 总价 − 定金，最少 0）。声望 +3。木牌次日开坊可以再挂新的。 逾期：声望 −2，退回定金（文不足时扣到 0），木牌清掉。酒仍在玩家手里。</p>
+<h4>5.3 为什么值得做</h4>
+<p>批购不看标价档和五味，适合把平价米酒成批送出去。它占用交期里的库存，前柜会少几件可卖的。圩日前一天若交期重叠，玩家要决定留甜酒酿给游客，还是把坛装酒送给老周。</p>
+<h3>6. 常驻委托</h3>
+<p>委托的触发和对话在 <code>16</code>。销售系统只负责：委托要的那件酒从后仓扣除，奖励按 <code>orders.json</code> 发放，数字见 <code>04</code> §10.5。</p>
+<h3>7. 日结</h3>
+<p>三行里的「柜」使用当日事件，不重新随机：</p>
+<ul><li>卖出：酒路、成色档（低于 50 / 50–69 / 70 以上）、客人名。</li><li>离开：主因一句。</li><li>批购：还剩几日，或今天交了、逾期了。</li></ul>
+<h3>8. 边界</h3>
+<ul><li>不还价。</li><li>不讨价到小数。</li><li>客人不因酒名或封签色改变成交。酒名只进酒谱和酒帖。</li><li>不设玩家之间的市场。</li></ul></section><section id="09_酒坊布置" class="chapter" data-title="酒坊布置" tabindex="-1"><div class="chapter-kicker">文档 09</div><h2>酒坊布置</h2>
+<p>版本：0.2 · 2026-10-01 主责：东西放在哪、什么地方不能挡。风格好不好看归 <code>14</code>。灯、雾、酒色归 <code>15</code>。氛围怎么变成客流归 <code>13</code>。</p>
+<h3>1. 目标</h3>
+<p>布置让酒坊院慢慢像这家店，同时不挡住田埂、檐廊、摊席、缸前和展位。 玩家随时能进布置。当天已经算完的氛围不因中途摆放而改变，见 <code>13</code> §1。</p>
+<h3>2. 网格与区域</h3>
+<p>全院 1 米格。区域及权重：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">区域 id</th><th scope="col">位置</th><th scope="col">zoneWeight</th><th scope="col">可摆</th></tr></thead><tbody><tr><td>zone_paddy_edge</td><td>田埂外侧</td><td>0.6</td><td>灯、矮植物，不进田面</td></tr><tr><td>zone_corridor</td><td>檐廊两侧</td><td>1.0</td><td>窄架、帘</td></tr><tr><td>zone_ferment</td><td>发酵房墙边</td><td>1.2</td><td>缸垫、温灯</td></tr><tr><td>zone_cellar</td><td>窖口内壁</td><td>1.0</td><td>坛架、灯</td></tr><tr><td>zone_counter</td><td>前柜后墙</td><td>1.3</td><td>酒架、挂画、灯</td></tr><tr><td>zone_gate</td><td>河埠内侧</td><td>0.8</td><td>幌子、灯</td></tr></tbody></table></div>
+<p>禁止占用：田面、米囤、甑前操作点、摊席铺面、搅缸站位、展位、客人站位、河埠通道。这些格子不接收家具。</p>
+<h3>3. 摆放操作</h3>
+<ul><li>从账册的器物页拖到格子上。绿格可放，红格弹回。</li><li>旋转 90 度。占地由 <code>footprint</code> 决定。</li><li>撤回最近一次摆放，直到下一次工时结算。结算后仍可再搬，只是不能用撤回。</li><li>重叠不可放。</li></ul>
+<h3>4. 开局布置</h3>
+<p>水乡微光 6 件，摆在柜墙和檐廊，使开局 A = 18。这 6 件的 <code>atmosphere</code> 之和乘权重后须等于 18，物品表按这个结果填，验收见 <code>26</code>。</p>
+<h3>5. 主导风格</h3>
+<p>开坊时，已摆放物品里件数最多的 <code>styleId</code> 为主导风格。并列时取开局风格 <code>water_glow</code>，若场上没有它，取先摆下的那件的风格。 首发只能买到水乡微光的器物。其他风格进表但 <code>unlockLevel</code> 高于 4，商店不显示。</p>
+<h3>6. 交给氛围公式的输入</h3>
+<p>每件家具提供 <code>atmosphere</code>、<code>styleIds</code>、所在 <code>zoneId</code>。灯额外提供 <code>warm</code>，植物额外提供「算进 plantBonus」。公式在 <code>13</code>，件数上限不另定，格子和钱就是上限。</p>
+<h3>7. 解锁与商店</h3>
+<p>器物用文购买，等级见各自行。买下即入库，不自动摆上。</p>
+<p><strong>价格待补。</strong> <code>04</code> §12 的手算显示，把 A 从 18 提到 36 能让 4 级提前约 7 日。器物价格要让这一步花掉一笔像样的钱（量级是一次升级的一半上下），定价后写进 <code>04</code> 并重跑手算。 不卖「氛围药水」。不卖会改成色或五味的摆件。</p></section><section id="10_升级与成长系统" class="chapter" data-title="升级与成长系统" tabindex="-1"><div class="chapter-kicker">文档 10</div><h2>升级与成长系统</h2>
+<p>版本：0.2 · 2026-10-01 主责：酒坊等级解锁什么、酿艺点怎么花、技能做什么。花费、门槛、技能效果的数字见 <code>04</code> §10.4 与 §11。</p>
+<h3>1. 三种成长</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">成长</th><th scope="col">玩家感觉</th><th scope="col">不做什么</th></tr></thead><tbody><tr><td>酒坊等级</td><td>缸、窖、展位变多，酒路变多</td><td>不提高每一斗的产量</td></tr><tr><td>酿艺点</td><td>把做过的蒸饭和看缸换成一项手艺</td><td>不直接加文</td></tr><tr><td>声望</td><td>升级门开了</td><td>不进客流和售价公式，不代替成色</td></tr></tbody></table></div>
+<h3>2. 酒坊等级</h3>
+<p>1 级开局。2、3、4 级在收工时一次付清，次日生效。容量表见 <code>04</code> §4。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">到等级</th><th scope="col">玩家新得到的玩法</th></tr></thead><tbody><tr><td>2</td><td>清酒、香糯与紫糯的种子、老周报价里的新米</td></tr><tr><td>3</td><td>桂花酿、老周的桂花货、可雇伙计（第三个人手）、第二口浸缸</td></tr><tr><td>4</td><td>更多窖位和展位。技能「田埂」若已学，此时最有用</td></tr></tbody></table></div>
+<p>5 级只留 <code>workshop_levels</code> 的空行，<code>enabled: false</code>。首发不显示。</p>
+<h3>3. 酿艺点</h3>
+<p>获得方式见 <code>04</code> §11。只在玩家自己动手或完成委托时增加。人手蒸饭不加。</p>
+<h3>4. 技能树</h3>
+<p>四条枝，每条两层。未学第一层不能学第二层。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">枝</th><th scope="col">第一层</th><th scope="col">第二层</th></tr></thead><tbody><tr><td>种植</td><td>识天：田边写出今日动词，倒伏 / 暑伤提醒提前 1 工时</td><td>田埂：无人也算出勤，见 <code>04</code></td></tr><tr><td>酿造</td><td>火候眼：标出目标带</td><td>早看缸：窗口起点提前</td></tr><tr><td>经营</td><td>识客：客人进门前，账册写出会来的酒路</td><td>圩备：圩日当天开坊时，若柜上没有甜酒酿，提醒一句</td></tr><tr><td>酒谱</td><td>记名：酒谱多留 8 条历史</td><td>封签：多 2 个封签色</td></tr></tbody></table></div>
+<p>「识天」不增加预报天数，预报仍是 3 日。效果数字见 <code>04</code> §11。 酒谱枝不改经济。探索学者不单列成树；找泉、识野生稻属于 <code>11</code>，首发关闭。</p>
+<h3>5. 节奏</h3>
+<p><code>04</code> §12 的中线：</p>
+<ul><li>第 1 周学会火候眼或识天里的一个，周末（约第 7 日）到 2 级。</li><li>第 2 周开始做清酒，接茶客的讲究档。第 3 周初（约第 15 日）到 3 级。</li><li>第 3 周的圩日（第 20 日）前做出第一批桂花酿。</li><li>第 4 周中后段（约第 25 日）到 4 级。</li></ul>
+<p>这是 <code>04</code> §12 的中线，不是任务。游戏不设「第 N 日必须升级」的失败。</p>
+<h3>6. 本季页</h3>
+<p>账册有一页「本季」，只列三件玩家自己勾过的目标，例如「收两茬完美」「卖出一坛清酒」「圩日卖光甜酒酿」。勾选不给数值。完成时记一笔，供日结引用。</p>
+<h3>7. 不做</h3>
+<ul><li>经验条升级、连击、体力。</li><li>技能永久提高成色百分比。</li><li>付费点亮技能。</li></ul></section><section id="11_夜泉与失传方" class="chapter" data-title="夜泉与失传方" tabindex="-1"><div class="chapter-kicker">文档 11</div><h2>夜泉与失传方</h2>
+<p>版本：0.2 · 2026-10-01 主责：首发之后的一篇短内容如何接上同一条酿造链。首发 <code>enabled: false</code>。数字若与 <code>04</code> 冲突，以 <code>04</code> 为准；本篇新增数字在启用前补进 <code>04</code>，不在这里另做经济。</p>
+<h3>1. 篇章是什么</h3>
+<p>酒坊 4 级之后，河埠外的雾散开一角，院北的田埂空位变成一块野稻田，西侧窖壁后有一道泉眼。玩家仍在酒坊院里干活。野稻走浸缸到酒窖的同一条链，不新做一套玩法。</p>
+<p>酒仙晚照只在泉眼边出现三次。她不收徒仪式，也不发战斗能力。</p>
+<h3>2. 触发</h3>
+<p>同时满足才把 <code>chapter_spring</code> 设为可用：</p>
+<ul><li>酒坊 4 级</li><li>卖出过至少 1 坛成色 ≥ 80 的清酒</li><li>阿禾好感 ≥ 60（<code>04</code> §11.1），并听过她的旧事</li></ul>
+<p>未触发时，田埂空位是封闭的竹篱，窖壁没有门。</p>
+<h3>3. 品种与资源</h3>
+<ul><li><code>var_wild</code> 野生稻，只能种在 <code>plot_wild</code>，产量和火候中心见 <code>04</code> §5。</li><li>泉华：晚照第一段对话给 1 点。启用后的具体获取再写入 <code>04</code>，首发保持 0。</li><li>失传方只有一条：<code>wine_spring</code>。站序与清酒相同，在酒窖使用 1 点泉华。五味在清酒基础上另有一行，启用时补进 <code>taste_mods.json</code>。</li></ul>
+<p>没有这条方，野生稻也可以做成清酒或米酒。篇章是多一条路，不是替换主链。</p>
+<h3>4. 场景</h3>
+<p><code>scene_spring</code> 不是第二张大地图。它是窖壁后 6 × 4 米的下沉泉池，仍属酒坊院场景，镜头推入即可。 不做山顶、废弃地宫和解谜机关。</p>
+<h3>5. 剧情三拍</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">顺序</th><th scope="col">发生</th><th scope="col">交出</th></tr></thead><tbody><tr><td>1</td><td>晚照在泉边，认出阿禾藏起的旧坛绳</td><td>泉华 1，野稻种子</td></tr><tr><td>2</td><td>玩家用野生稻蒸出一批无焦糊的饭</td><td>一句关于家族没写完的酒方</td></tr><tr><td>3</td><td>做出 <code>wine_spring</code> 并自品</td><td>酒谱记下这一条，晚照不再出现</td></tr></tbody></table></div>
+<p>家族秘史到此为止。不扩展成多章主线。</p>
+<h3>6. 与首发的隔离</h3>
+<ul><li>首发构建不加载晚照模型、野稻、泉池门。</li><li>存档出现 <code>chapter_spring: true</code> 而表项关闭时，读档失败并提示版本不符，见 <code>21</code>。</li><li>泉水没有治疗或加成效果。<code>wine_spring</code> 的五味行和泉华的获取方式在启用前补进 <code>04</code>；在那之前，清酒公式不变。</li></ul></section><section id="12_UIUX流程与线框" class="chapter" data-title="UI/UX 流程与线框" tabindex="-1"><div class="chapter-kicker">文档 12</div><h2>UI/UX 流程与线框</h2>
+<p>版本：0.2 · 2026-10-01 主责：镜头、账册、蒸甑与看缸的界面、首日引导、日结三行怎么写。规则见 <code>02</code>、<code>03</code>、<code>07</code>、<code>08</code>。数字见 <code>04</code>。</p>
+<h3>1. 原则</h3>
+<ul><li>玩家先看见院子，再看见字。账册是掀开的一页，不盖住整院。</li><li>能用形状说明的状态，不只靠颜色。夹生、焦糊、该搅了、倒伏，各有图标。</li><li>一次只问一个决定。组批时先问酒路；上架时再问标价档。</li><li>静音可以玩。关键音效都有图标对应，见 <code>18</code>。</li></ul>
+<h3>2. 镜头</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">档</th><th scope="col">看到什么</th><th scope="col">进入方式</th></tr></thead><tbody><tr><td>全院</td><td>田、廊、柜至少三站</td><td>默认；滚轮拉远</td></tr><tr><td>工站</td><td>该站锚点</td><td>点击工站名牌</td></tr><tr><td>蒸甑特写</td><td>饭床和三条火候</td><td>蒸甑有人手在岗，玩家选择亲手蒸</td></tr><tr><td>看缸</td><td>缸沿和搅缸按钮</td><td>窗口期内点击那口缸</td></tr><tr><td>账册</td><td>右侧半页</td><td>Tab 或账册图标</td></tr></tbody></table></div>
+<p>全院档下，工时、天气、距圩日、文，固定在上缘。不显示成色公式。</p>
+<h3>3. 账册</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">页</th><th scope="col">内容</th></tr></thead><tbody><tr><td>今日</td><td>天气与后三日、今日照料动词、在制批次、客人到达工时</td></tr><tr><td>米与酒</td><td>米囤、家曲、桂花、后仓、展位</td></tr><tr><td>酒谱</td><td>已出的酒，五味和酒名。容量见 <code>04</code> §11</td></tr><tr><td>人手</td><td>谁在哪一站，伙计是否上工</td></tr><tr><td>本季</td><td>三件自定目标，见 <code>10</code> §6</td></tr><tr><td>器物</td><td>布置入口</td></tr></tbody></table></div>
+<p>今日页的批次行只写：品种、酒路、所在站、剩余工时（向上取整）、瑕疵图标。</p>
+<h3>4. 蒸甑与看缸</h3>
+<p>蒸甑特写的线框：</p>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">[ 饭床 ]          起火  ————●——
+                 稳火  ——●————
+                 收火  ———●———
+[ 图标：正好 / 夹生 / 焦边 ]  [ 确认 ] [ 交给人手 ]</code></pre></div>
+<p>未学「火候眼」时不画目标带，预览图标仍然会在松手后更新。 看缸不进长时间特写：缸沿亮环，按钮写「搅一下」。窗口过去后按钮消失，账册留下 <code>stir_miss</code> 图标。</p>
+<h3>5. 首日引导</h3>
+<p>只在第 1 日、且用开局存档时出现。每步完成即消失，不重复。</p>
+<ol><li>点开那口已经在窗口里的缸，搅一下。开局阿禾在蒸甑，不会替玩家搅。</li><li>到蒸甑，先给批 B 选酒路，再亲手蒸。按下确认才算完成。交给人手会蒸完这批，但没有亲手加成，这一步也不算完成。</li><li>打开今日页，看明天的天气。</li><li>把后仓的甜酒酿拖一瓶上展位。阿青开局就在前柜，街坊来了会买。</li><li>收工前看日结三行。</li></ol>
+<p>引导不自动派工，不自动上架，不送钱。</p>
+<h3>6. 日结三行</h3>
+<p>收工时占屏幕下半，三行来自当日 diff，见 <code>02</code> §5。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">行</th><th scope="col">句式</th></tr></thead><tbody><tr><td>田</td><td>「1 号田到了灌浆。」或「2 号田因夜里的雨倒伏，品相降了一档。」</td></tr><tr><td>酒</td><td>「白糯米酒还在窖里，剩 2 工时。」或「这批误了搅缸。」</td></tr><tr><td>柜</td><td>「街坊买走一瓶甜酒酿。」或「茶客走了：柜上没有清酒。」</td></tr></tbody></table></div>
+<p>没有发生的行写「今天这里没变化」，不隐藏，避免玩家以为漏记。</p>
+<h3>7. 操作</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">输入</th><th scope="col">作用</th></tr></thead><tbody><tr><td>左键</td><td>选站、选批、确认</td></tr><tr><td>右键</td><td>放下当前拖拽</td></tr><tr><td>滚轮</td><td>拉近拉远</td></tr><tr><td>方向键</td><td>蒸甑滑杆 ±0.05</td></tr><tr><td>Esc</td><td>退出特写且不确认；关闭账册</td></tr><tr><td>空格</td><td>推进到下一个交接点</td></tr><tr><td>Tab</td><td>账册</td></tr></tbody></table></div>
+<p>手柄不作为首发完成条件。输入模块仍把确认、取消、推进收成三个动作，方便以后绑定。</p>
+<h3>8. 可访问性</h3>
+<ul><li>色弱：品相用印章，瑕疵用图标，火候结果用形状。</li><li>字号两档。默认档在 1080p 下正文不小于 18 像素。</li><li>界面不使用一闪而过的红屏表示失败。败酿用布盖和一句可选去向。</li></ul></section><section id="13_酒香氛围与经营转化" class="chapter" data-title="酒香氛围与经营转化" tabindex="-1"><div class="chapter-kicker">文档 13</div><h2>酒香氛围与经营转化</h2>
+<p>版本：0.2 · 2026-10-01 主责：五味公式、氛围公式、客流公式、溢价公式的<strong>结构</strong>。系数见 <code>04</code> §8、§9、§10。摆放输入见 <code>09</code>。成交见 <code>08</code>。</p>
+<p>全文的 <code>round()</code> 都是四舍五入，0.5 进一。</p>
+<h3>1. 什么时候算</h3>
+<ul><li>五味在装瓶或装坛时算一次，写进成品。</li><li>氛围、客流、<code>moodK</code> 在每个酒坊日开坊时算一次，写入当日账页。</li><li>当天再摆家具，本次开坊已经算好的氛围和客流不变。已上架酒的 <code>moodK</code> 也不变；改标价档会改 <code>tierK</code>。</li><li>次日开坊重算。后仓里未上架的酒，次日上架时用新的 <code>moodK</code>。</li></ul>
+<h3>2. 五味</h3>
+<p>香、甜、醇、净、韵各自：</p>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">taste = clamp(40 + Σ 命中的加减行, 0, 100)</code></pre></div>
+<p>加减行的来源只有：品种、酒路、长陈、完美品相、瑕疵。一张来源最多算一次。白糯没有品种行。短陈不加长陈行。表见 <code>04</code> §8。</p>
+<p>五味不反写成色。成色公式见 <code>04</code> §7，两边共用瑕疵列表，但不互相加减。</p>
+<h3>3. 氛围</h3>
+<p>单件对主导风格的 match：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">关系</th><th scope="col">match</th></tr></thead><tbody><tr><td>标签含主导风格</td><td><code>matchMain</code></td></tr><tr><td>标签含相邻风格</td><td><code>matchNeighbor</code></td></tr><tr><td>无风格标签</td><td><code>matchNone</code></td></tr><tr><td>其余</td><td><code>matchOther</code></td></tr></tbody></table></div>
+<p>本文所有系数的取值都在 <code>04</code> §10.1。§5 的手算用的就是那些值。</p>
+<p>相邻只来自 <code>styles.neighbors</code>。</p>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">zoneScore[z]   = Σ (item.atmosphere × match(item))    只统计放在区域 z 的物品
+styleCoherence = coherenceFloor + (1 − coherenceFloor) × (主导风格件数 / 总件数)
+                 总件数为 0 时取 1
+cleanliness    = 1
+
+A = Σ(zoneScore[z] × zoneWeight[z]) × cleanliness × styleCoherence
+    + lightBonus + plantBonus
+
+lightBonus = min(lightPer × 暖光灯数, lightCap)
+plantBonus = min(plantPer × 植物件数, plantCap)</code></pre></div>
+<p>空院保底：<code>A = max(A, A_floor)</code>。<code>cleanliness</code> 首发恒为 1，留给以后。灯和植物自身的 <code>atmosphere</code> 已经在 <code>zoneScore</code> 里。两项 bonus 只是小修正。 <code>A_norm = clamp(A / A_ref, 0, A_normCap)</code>。</p>
+<h3>4. 转化</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">客流 = round(trafficBase × (trafficFloor + trafficSpan × min(A_norm, 1)))
+若圩日：客流 = round(客流 × fairMul)
+若雨天：客流 = 客流 − rainMinus
+客流 = max(客流, 1)
+
+moodK = 1 + moodSpan × min(A_norm, 1) × styleMatch</code></pre></div>
+<p><code>styleMatch</code> 是这件酒封签色的 <code>styleId</code>（<code>products_visual.json</code>）对主导风格的 match，不是客人匹配。开局三种封签都是 <code>water_glow</code>。客人匹配见 <code>08</code> §4。 <code>A_norm</code> 超过 1 的部分不再增加客流，也不再增加溢价。 活动若把客流倍率叠上圩日，总倍率不得超过 <code>04</code> §14。</p>
+<h3>5. 开局手算</h3>
+<p>1 级，<code>trafficBase = 3</code>，<code>A_ref = 36</code>。开局 6 件都是 <code>water_glow</code>，coherence = 1，没有暖光 bonus 和植物 bonus。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">物件</th><th scope="col">区域</th><th scope="col">atmosphere</th><th scope="col">区域权重</th><th scope="col">得分</th></tr></thead><tbody><tr><td>柜架</td><td>前柜</td><td>4</td><td>1.3</td><td>5.2</td></tr><tr><td>挂轴</td><td>前柜</td><td>2</td><td>1.3</td><td>2.6</td></tr><tr><td>檐帘</td><td>檐廊</td><td>4.2</td><td>1.0</td><td>4.2</td></tr><tr><td>条凳</td><td>檐廊</td><td>2</td><td>1.0</td><td>2.0</td></tr><tr><td>幌子</td><td>河埠</td><td>2</td><td>0.8</td><td>1.6</td></tr><tr><td>缸垫</td><td>发酵房</td><td>2</td><td>1.2</td><td>2.4</td></tr></tbody></table></div>
+<p>A = 18，<code>A_norm = 0.5</code>。客流 = <code>round(3 × 0.825) = round(2.475) = 2</code>。封签同风格时 <code>moodK = 1.10</code>。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">场景</th><th scope="col">A_norm</th><th scope="col">客流</th><th scope="col">moodK</th></tr></thead><tbody><tr><td>空院</td><td>8/36</td><td>round(3 × 0.728) = 2</td><td>1.04</td></tr><tr><td>开局</td><td>0.50</td><td>2</td><td>1.10</td></tr><tr><td>A 提到 36</td><td>1.00</td><td>3</td><td>1.20</td></tr><tr><td>开局又逢圩日</td><td>0.50</td><td>round(2 × 1.5) = 3</td><td>1.10</td></tr><tr><td>开局又逢雨</td><td>0.50</td><td>2 − 1 = 1</td><td>1.10</td></tr></tbody></table></div>
+<p>从开局摆到满，1 级每天多 1 位客人，溢价从一成到两成。布置值得做，替代不了酒路和成色。</p>
+<h3>6. 酒意</h3>
+<p>一个酒坊日可以在柜前自品 1 件已上架或后仓里的酒，这件酒就此用掉。取五味最高的一项做表现标签：香则灯更暖，甜则步态轻一点，醇则缸沿高光，净则水面更平，韵则入夜粒子稍密。并列时按香、甜、醇、净、韵的顺序取前一项。 次日开坊清除。酒意不进客流、价格、工时和成色。粒子仍不得超过 <code>04</code> §13。</p>
+<h3>7. 界面文案</h3>
+<p>不显示 A 和 A_norm。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">A_norm</th><th scope="col">文案</th></tr></thead><tbody><tr><td>&lt; 0.35</td><td>院子还很空</td></tr><tr><td>0.35–0.7</td><td>有一点酒香气</td></tr><tr><td>0.7–1</td><td>客人愿意在埠头多站一会儿</td></tr><tr><td>&gt; 1</td><td>这间坊自己会留人</td></tr></tbody></table></div>
+<p>日结若当日成交的平均 moodK &gt; 1.05，可以写：「封签和院子是同一种风格，标价被轻轻托住了」。</p>
+<h3>8. 禁止</h3>
+<ul><li>用布置或酒意抬成色、消瑕疵、缩短发酵。</li><li>把五味写成酒精度、糖度或功效。</li><li>显示匹配分。</li></ul></section><section id="14_酒坊风格指南" class="chapter" data-title="酒坊风格指南" tabindex="-1"><div class="chapter-kicker">文档 14</div><h2>酒坊风格指南</h2>
+<p>版本：0.2 · 2026-10-01 主责：酒坊院和四套风格的视觉规则。摆放规则见 <code>09</code>。灯、雾、酒色见 <code>15</code>。哪套风格能买见 <code>04</code> 与 <code>10</code>。</p>
+<h3>1. 总原则</h3>
+<ul><li>先认得出米、饭、缸、酒，再认风格。风格换的是灯、木、布、封签，不换地形，不换工站轮廓。</li><li>低面数，暖色，少高光条。酒液可以半透明，但不做真实折射广告片。</li><li>粉墙、水、竹是院子的底。风格层叠在底上面。</li></ul>
+<h3>2. 酒坊院（全风格共用）</h3>
+<ul><li>时令是夏末到秋初。稻在同一季里从绿到黄，不换雪景。</li><li>北田南埠，檐廊是深色木，墙是浅粉。水是灰绿，不是纯蓝。</li><li>材料状态的读法见 <code>07</code> §11，任何风格都要保住那些形状差。</li></ul>
+<h3>3. 水乡微光 <code>water_glow</code>（首发）</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">规则</th></tr></thead><tbody><tr><td>木</td><td>暖褐，檐柱略深</td></tr><tr><td>布</td><td>月白、淡青，幌子一条</td></tr><tr><td>陶</td><td>坛是深褐。开局三种封签色：朱、石青、月白，都带 <code>water_glow</code> 标签</td></tr><tr><td>灯</td><td>纸灯，入夜才明显</td></tr><tr><td>金属</td><td>少。甑沿一条铁色即可</td></tr></tbody></table></div>
+<p>首发商店只有这一套。开局 6 件都贴这个标签，见 <code>13</code> §5。</p>
+<h3>4. 暖窑 <code>warm_kiln</code></h3>
+<p>木更红，灯更橙，布用赭。适合以后强调灶和窖。相邻 <code>water_glow</code>。首发不投放。</p>
+<h3>5. 白瓷 <code>porcelain_white</code></h3>
+<p>墙更白，坛换成浅瓷色，布用很浅的灰青。高光只留在瓷沿。相邻 <code>water_glow</code>。首发不投放。</p>
+<h3>6. 夜泉 <code>night_spring</code>（篇章）</h3>
+<p>在水乡微光上加泉池的冷青边光。不全院换成黑夜。只出现在 <code>11</code> 打开之后。相邻 <code>water_glow</code>。</p>
+<h3>7. 跨风格禁则</h3>
+<ul><li>不使用霓虹、像素字体、金属拉丝柜台。</li><li>不把现代商标贴上幌子。酒名是玩家写的，用同一套毛笔感标题字，正文用清晰的印刷宋黑。</li><li>封签颜色最多五种，见 <code>04</code> §11。颜色用来认自家的酒，不用来表示成色。</li></ul>
+<h3>8. 制作顺序</h3>
+<p>先做水乡微光的院、三块田、一口缸、一架甑、前柜。暖窑和白瓷只做色板和两件替换道具的概念，不进首发包。</p></section><section id="15_灯光水雾与酒色联动" class="chapter" data-title="灯光、水雾与酒色" tabindex="-1"><div class="chapter-kicker">文档 15</div><h2>灯光、水雾与酒色</h2>
+<p>版本：0.2 · 2026-10-01 主责：一天里的光、天气里的雾、酒液颜色怎么跟状态走。它们不单独产生客流。客流只走 <code>13</code>。粒子上限见 <code>04</code> §13。</p>
+<h3>1. 一日的光</h3>
+<p>八个工时分成三段，见 <code>04</code> §2.1。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">工时</th><th scope="col">光</th><th scope="col">玩家据此能认出</th></tr></thead><tbody><tr><td>1–5</td><td>昼，软阴影，粉墙是亮的</td><td>稻色、饭色</td></tr><tr><td>6</td><td>傍晚，灯开始有轮廓</td><td>埠头的人影变长</td></tr><tr><td>7–8</td><td>入夜，纸灯亮，田上有少量萤火</td><td>缸沿的窗口环仍然看得见</td></tr></tbody></table></div>
+<p>入夜不把场景压成看不清工站。名牌和窗口环保持对比。</p>
+<h3>2. 天气</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">天气</th><th scope="col">光与雾</th><th scope="col">不做</th></tr></thead><tbody><tr><td>晴</td><td>影清楚，没有雾片</td><td>—</td></tr><tr><td>阴</td><td>影变软，远河对比下降</td><td>不改工时长度</td></tr><tr><td>雨</td><td>檐下雨线，摊席空着</td><td>雨线不挡名牌</td></tr><tr><td>暑</td><td>地面更亮，蝉只是声音</td><td>不用热浪扭曲整个画面</td></tr></tbody></table></div>
+<p>倒伏和遮阴是田里的模型状态，见 <code>06</code>，不是后处理滤镜。</p>
+<h3>3. 水</h3>
+<p>田水、河水、浸缸水面共用一套平面：两张滚动法线，岸边略深。不做法线以外的流体。 雨天田水线视觉上高一档，只是表现，和「今日照料是扶秧」不冲突。</p>
+<h3>4. 酒色</h3>
+<p>酒液是坛或瓶里的一块半透明体，颜色由酒路决定，深浅由成色分三档。档位只服务外观：低于 50、50–69、70 以上。成色数字仍以 <code>04</code> 为准。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">酒路或去向</th><th scope="col">颜色</th></tr></thead><tbody><tr><td>甜酒酿</td><td>乳白，略浊</td></tr><tr><td>米酒</td><td>琥珀</td></tr><tr><td>清酒</td><td>浅金，更透</td></tr><tr><td>桂花酿</td><td>琥珀里一点金点</td></tr><tr><td>醋</td><td>深褐，布盖，无封签</td></tr><tr><td>料酒</td><td>浅褐</td></tr><tr><td>饲料</td><td>不装酒液，用麻袋</td></tr></tbody></table></div>
+<p>焦糊和夹生体现在饭床上，不把整坛酒染成黑色。瑕疵靠图标。</p>
+<h3>5. 粒子</h3>
+<p>发酵进度过 0.3 才有气泡。窗口期内加密，加密不增加判定。入夜酒香粒子贴着前柜和窖口。数量见 <code>04</code> §13。镜头离开该站时粒子停，数据不停。</p>
+<h3>6. 和氛围的关系</h3>
+<p>暖光灯、植物把 <code>warm</code> 和植物计数交给 <code>13</code>。本节只规定它们亮不亮、什么时候亮。入夜纸灯即使没有 <code>warm</code> 标签也会亮，那是场景灯，不计 <code>lightBonus</code>。只有玩家摆上去、带 <code>warm</code> 的灯才计入。</p></section><section id="16_NPC与好感度剧情" class="chapter" data-title="人手与常驻人物" tabindex="-1"><div class="chapter-kicker">文档 16</div><h2>人手与常驻人物</h2>
+<p>版本：0.2 · 2026-10-01 主责：谁在场、派到哪一站会怎样、好感如何推进、委托和对话的口径。好感数字见 <code>04</code> §11.1。工时和产量见 <code>04</code> §3、§4。</p>
+<h3>1. 原则</h3>
+<ul><li>人是劳动力，也是说话的人。专长让某一站更省事，不让酒自动变好。</li><li>首发常驻只有阿禾、阿青。老周每天来报价，不住在派工栏里。晚照首发不出现。</li><li>赠酒用玩家自己的成品。好感不卖。</li></ul>
+<h3>2. 人物</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">名字</th><th scope="col">身份</th><th scope="col">所看的味</th><th scope="col">首发</th></tr></thead><tbody><tr><td>npc_he</td><td>阿禾</td><td>酒坊老管家</td><td>净</td><td>在</td></tr><tr><td>npc_qing</td><td>阿青</td><td>邻田的年轻人</td><td>甜</td><td>在</td></tr><tr><td>npc_zhou</td><td>老周</td><td>河埠酒商</td><td>醇</td><td>在，不派工</td></tr><tr><td>npc_wan</td><td>晚照</td><td>泉边的酒仙</td><td>—</td><td>关闭，见 <code>11</code></td></tr></tbody></table></div>
+<p>玩家可改自己的称呼、两种体型、三种衣服颜色。外观不改数值。</p>
+<h3>3. 派工</h3>
+<p>开坊时把阿禾、阿青拖到工站。3 级且付了日薪后，伙计占第三个名额。换岗从下一个整点起算。</p>
+<p><strong>当家不占名额。</strong> 玩家本人是当家，不在派工栏里，不能代替人手站柜、割稻、拌曲、压榨、调配。当家只做三件事：</p>
+<ul><li>亲手蒸：蒸甑上须有人手在岗。人手烧火，当家掌火候。</li><li>搅缸：窗口内点那口缸，不需要有人在发酵房。</li><li>照料水田：对一块田点一次。</li></ul>
+<p>这样「谁站哪一站」始终是人手的分配，当家的手只花在两个短决定和一件农活上。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">人</th><th scope="col">专长</th><th scope="col">没有的效果</th></tr></thead><tbody><tr><td>阿禾</td><td>人在发酵房时，窗口期内自动搅缸，<code>stirred = true</code></td><td>不减少发酵工时，不消其他瑕疵</td></tr><tr><td>阿青</td><td>人在水田时，1 工时可割 2 块；照料仍是 1 工时覆盖三块已播种的田</td><td>不提高每茬斗数</td></tr><tr><td>伙计</td><td>可站任何要人的站，按默认火候和默认做法干活</td><td>无专长，日薪见 <code>04</code></td></tr><tr><td>老周</td><td>不占名额</td><td>不能被派去蒸饭</td></tr></tbody></table></div>
+<p>蒸甑上若站的是阿禾、阿青或伙计，都走默认火候，<code>handmade = false</code>。只有玩家打开特写并确认，才算亲手。 首发 <code>stationBonus</code> 留空。不要另写「阿禾酿酒速度 ×0.8」这类倍率。</p>
+<h3>4. 好感</h3>
+<p>赠酒、档位、每日上限见 <code>04</code> §11.1。</p>
+<ul><li>30：当天第一次见面多一句日常，不给物品。</li><li>60：账册里该人物的「旧事」可听。阿禾的旧事是夜泉条件的一部分，听完不直接开门，条件见 <code>11</code>。</li><li>90：称呼改掉。阿禾称玩家「当家的」，阿青称「邻居」，老周称「熟客」。</li></ul>
+<p>好感不会掉，除非以后的活动显式写入。首发没有降低好感的事件。</p>
+<h3>5. 对话</h3>
+<p>每句只说一件事：天气、站上的活、或一句旧事。不讲功效，不讲现实酒精度。</p>
+<p>阿禾，窗口到了而人没在缸边：「缸沿亮了。这时候搅一下，酒会干净些。」 阿禾，旧事：「你祖父把最后一坛的绳结打了两道。酒坊后来只剩一道。」 阿青，雨天：「今天别浇了。把穗拢一拢。」 老周，首日不出现。第 2 日：「米按今天的价。不买也没关系，田还在。」</p>
+<p>晚照的三句只在篇章里，见 <code>11</code> §5。</p>
+<h3>6. 委托</h3>
+<p>同时只挂一件。完成奖励就是 <code>04</code> 里的声望 +2、酿艺点 +2，不另发现金。</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">谁</th><th scope="col">条件</th><th scope="col">何时可接</th></tr></thead><tbody><tr><td>task_sweet</td><td>阿青</td><td>后仓交 1 瓶甜酒酿</td><td>卖出过任意 1 件之后</td></tr><tr><td>task_rice</td><td>阿禾</td><td>后仓交 1 坛米酒</td><td>上一件完成后</td></tr><tr><td>task_clear</td><td>阿禾</td><td>后仓交 1 坛清酒</td><td>酒坊 2 级且上一件完成</td></tr></tbody></table></div>
+<p>成色要求见 <code>04</code> §10.5。交酒从后仓扣除，不能用留给批购的件。</p>
+<h3>7. 剧情接口</h3>
+<p>主线在首发是四拍，不另做关卡：</p>
+<ol><li>开局：阿禾把待蒸的米和正在发酵的缸交给玩家，自己去蒸甑烧火。</li><li>卖出第一件：阿青的委托出现。</li><li>酒坊 2 级：清酒解锁，阿禾要求一坛干净的。</li><li>酒坊 4 级且阿禾好感 60、卖出过成色 ≥ 80 的清酒：篇章开关仍默认关。条件只被记成事实，门不开，直到 <code>11</code> 启用。</li></ol>
+<h3>8. 语气</h3>
+<p>短句。口语。不喊口号，不把玩家叫成「天选的酿酒师」。晚照比阿禾更慢，仍然只说院子里的事。</p></section><section id="17_美术资源与命名规范" class="chapter" data-title="美术资源与命名规范" tabindex="-1"><div class="chapter-kicker">文档 17</div><h2>美术资源与命名规范</h2>
+<p>版本：0.2 · 2026-10-01 主责：命名、导入检查、面数和贴图上限的执行。上限数字见 <code>04</code> §13。风格见 <code>14</code>，状态读法见 <code>07</code> §11。</p>
+<h3>1. 命名</h3>
+<p>小写英文与下划线。前缀：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">前缀</th><th scope="col">用途</th></tr></thead><tbody><tr><td><code>mdl_</code></td><td>网格</td></tr><tr><td><code>tex_</code></td><td>贴图</td></tr><tr><td><code>mat_</code></td><td>材质</td></tr><tr><td><code>anim_</code></td><td>动画</td></tr><tr><td><code>sfx_</code></td><td>音效</td></tr><tr><td><code>bgm_</code></td><td>音乐</td></tr></tbody></table></div>
+<p>例子：<code>mdl_vat_ferment</code>、<code>mdl_rice_bed</code>、<code>mdl_jar_rice</code>、<code>tex_seal_zhu</code>、<code>anim_npc_he_stir</code>。 变体放在名字末尾：<code>mdl_rice_bed_hard</code>、<code>mdl_rice_bed_gloss</code>、<code>mdl_rice_bed_scorch</code>。</p>
+<p>禁止用中文文件名、空格、以及「最终」「最新」「new」。</p>
+<h3>2. 预算</h3>
+<p>三角面和贴图边长不得超过 <code>04</code> §13。院景图集一张 2048，角色各自一张 1024。蒸甑形态键只在 <code>mdl_rice_bed</code> 上，不在静态三档上再叠键。</p>
+<p>稻用实例。每块田 80 丛，不把每一株做成独立网格。</p>
+<h3>3. 必须能分开的状态</h3>
+<p>这些要做成不同网格或同一网格的明显形态，不能只换一个几乎看不出的色值：</p>
+<ul><li>G0 到 G6 的稻</li><li>湿米、夹生饭、正好的饭、焦边</li><li>发酵缸的平静与冒泡</li><li>窗口环开 / 关</li><li>甜酒酿、米酒、清酒、桂花酿、醋、料酒、饲料</li><li>短陈一道绳、长陈两道绳</li></ul>
+<h3>4. 导出</h3>
+<ul><li>Blender 单位米，应用缩放（Apply Scale）。Blender 内保持默认 Z 向上，导出 glTF 时勾选 +Y Up。</li><li>导出 GLB。贴图不嵌在模型里的第二份大图；由图集引用。</li><li>轴和锚点：工站锚点在地面，角色脚底在地面，酒坛底在地面。</li><li>导入 Unity 后检查：无相机、无灯、无默认材质球。</li></ul>
+<h3>5. 角色</h3>
+<p>阿禾、阿青、老周各一套。晚照的模型不进首发包。 玩家两种体型共用骨架。衣服三色是材质参数，不是三套网格。</p>
+<h3>6. 检查清单</h3>
+<p>入库前：命名、面数、贴图尺寸、状态是否可辨、GLB 无多余节点。不过检的文件不进 <code>game/NuoBrew</code> 的运行时目录。</p></section><section id="18_音效与音乐设计" class="chapter" data-title="音效与音乐设计" tabindex="-1"><div class="chapter-kicker">文档 18</div><h2>音效与音乐设计</h2>
+<p>版本：0.2 · 2026-10-01 主责：声床、工站声、天气声、哪几处要有反馈。音乐是原创的，不引用现成曲子。</p>
+<h3>1. 方向</h3>
+<p>竹笛、古筝、流水、虫鸣，音量让在环境声下面。玩家要能听出缸在冒泡、雨打在檐上、收工的那一声。 不唱词。不使用带版权的民乐录音当背景。</p>
+<h3>2. 音乐</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">层</th><th scope="col">何时</th><th scope="col">做法</th></tr></thead><tbody><tr><td>昼</td><td>工时 1–5</td><td>笛与筝，疏</td></tr><tr><td>傍晚</td><td>工时 6</td><td>同一主题，少一件乐器</td></tr><tr><td>入夜</td><td>工时 7–8</td><td>只留低频的水和偶尔一声筝</td></tr></tbody></table></div>
+<p>层之间交叉淡入 2 秒，不切歌。蒸甑特写把音乐压低，让蒸汽声上来。圩日不换一首「欢快战曲」，只在昼层上加一点集市的远处人声。</p>
+<h3>3. 环境声</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">状态</th><th scope="col">声</th></tr></thead><tbody><tr><td>晴、昼</td><td>水、稀落的鸟</td></tr><tr><td>阴</td><td>水更近，鸟少</td></tr><tr><td>雨</td><td>檐雨。摊席没有暴晒的蝉</td></tr><tr><td>暑</td><td>蝉。雨和蝉不同时</td></tr><tr><td>入夜</td><td>虫鸣、少量萤火不发声</td></tr></tbody></table></div>
+<p>环境声随镜头稍稍偏向所在区域，离屏的站不各播一遍。发酵的气泡只在镜头靠近发酵房或看缸时清晰，远处变成很低的一层。</p>
+<h3>4. 音效</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">事件</th><th scope="col">声</th><th scope="col">没有声时的界面</th></tr></thead><tbody><tr><td>收割</td><td>稻束倒下，短</td><td>田的阶段变化</td></tr><tr><td>蒸饭确认</td><td>蒸汽一响</td><td>火候图标</td></tr><tr><td>搅缸</td><td>木耙碰缸沿</td><td>窗口环灭掉</td></tr><tr><td>误了窗口</td><td>很轻的一声，不刺耳</td><td><code>stir_miss</code> 图标</td></tr><tr><td>装坛</td><td>坛口一扣</td><td>成品进后仓</td></tr><tr><td>成交</td><td>铜钱一声</td><td>日结会再写</td></tr><tr><td>客人离开</td><td>脚步远去</td><td>离开原因</td></tr><tr><td>收工</td><td>一记木鱼似的敲击</td><td>三行日结</td></tr></tbody></table></div>
+<p>败酿不播失败音。弹出的是三选一。</p>
+<h3>5. 实现</h3>
+<ul><li>总音量、音乐、音效三档，都可归零。</li><li>同一事件 0.2 秒内不叠两声。</li><li>音效文件 <code>sfx_</code>，音乐 <code>bgm_</code>，见 <code>17</code>。</li></ul>
+<h3>6. 不做</h3>
+<ul><li>语音配音。对话只出字。</li><li>用音乐提示「这坛是极品」。极品看形状和酒谱。</li><li>循环一段带歌词的流行歌。</li></ul></section><section id="19_技术架构" class="chapter" data-title="技术架构" tabindex="-1"><div class="chapter-kicker">文档 19</div><h2>技术架构</h2>
+<p>版本：0.2 · 2026-10-01 主责：工程分层、酒坊日怎么步进、模块边界。玩法规则不在这里重写。帧率见 <code>04</code> §14。</p>
+<h3>1. 基线</h3>
+<ul><li>Unity 6 LTS，C#。</li><li>三维从 Blender 导出 GLB，按 <code>17</code> 导入。</li><li>首发内容在 <code>content/</code> 的 JSON。Unity 场景不存放第二套价格和耗时。</li><li>领域程序集不引用 <code>UnityEngine</code>。判定可以在没有场景的测试里跑完。</li></ul>
+<p>首发锁 Unity 6，是为了在电脑上稳定跑院景，并把同一套纯逻辑留到以后的移动端。稻浪、酒液、蒸汽都走网格、着色器和粒子，不依赖流体解算。</p>
+<h3>2. 分层</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">Content        JSON 加载与校验，见 05
+Domain         时间、天气、田、批次、成色、五味、客人、存档对象
+Application    开坊、推进、收工、写盘
+Presentation   场景、镜头、特写、账册、音效</code></pre></div>
+<p>Presentation 把点击收成命令：<code>TendPlot</code>、<code>Harvest</code>、<code>FormBatch</code>、<code>Assign</code>、<code>ConfirmSteam</code>、<code>Stir</code>、<code>Shelve</code>、<code>SetPrice</code>、<code>ReserveForOrder</code>、<code>Gift</code>、<code>Advance</code>、<code>EndDay</code>。命令进 Application。视图不改成色。</p>
+<h3>3. 酒坊日步进</h3>
+<h4>3.1 开坊</h4>
+<p>按顺序：读天气和预报、老周报价、批购牌、氛围与客流、客人到达时刻、写当日账页、存盘。 这一步不推进工时。玩家还没操作时，退出游戏再进，开坊结果不变。</p>
+<h4>3.2 推进</h4>
+<p><code>Advance</code> 走到 <code>02</code> §2.2 的下一个交接点。每个整点结算时：</p>
+<ul><li>计时站按天气速度扣剩余工时。</li><li>要人的站若有人，扣工时；没人则停。</li><li>窗口开始或结束时抛出事件。结束且未搅，记 <code>stir_miss</code>。</li><li>客人到点则尝试成交，规则见 <code>08</code>。</li><li>写盘。</li></ul>
+<p>蒸甑特写期间不调用推进。确认之后才开始蒸的工时。</p>
+<h4>3.3 收工</h4>
+<p>第 8 工时结算完后进入收工。<code>EndDay</code>（一键收工）等于连续推进到第 8 工时，途中交接点照常结算，见 <code>02</code> §2.2。收工时：田 +1 阶、天气灾、家曲回复、开销、委托与批购到期、三行日结、<code>dayIndex + 1</code>、存盘。 收工不是单独场景。次日仍在同一院子。</p>
+<h3>4. 模块</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">模块</th><th scope="col">职责</th></tr></thead><tbody><tr><td>Clock</td><td>工时、交接点</td></tr><tr><td>Weather</td><td>种子化天气与预报</td></tr><tr><td>Paddy</td><td>阶段、照料、品相</td></tr><tr><td>Batch</td><td>酒路、工站、瑕疵</td></tr><tr><td>SteamJudge</td><td>三条参数对目标带</td></tr><tr><td>Ferment</td><td>窗口、搅缸</td></tr><tr><td>Quality</td><td>成色与败酿线</td></tr><tr><td>Taste</td><td>五味</td></tr><tr><td>Shop</td><td>客人、标价、批购</td></tr><tr><td>Atmosphere</td><td>A、客流、moodK</td></tr><tr><td>Save</td><td>schema 1 的读写</td></tr><tr><td>ContentDb</td><td>表校验</td></tr></tbody></table></div>
+<p>随机只来自 <code>hash(profileId, dayIndex, channel)</code>。<code>channel</code> 用固定字符串，如 <code>weather</code>、<code>guest</code>、<code>supply</code>。读档不重掷。禁止在成交时再叫一次无种子随机。</p>
+<h3>5. 场景</h3>
+<p>首发一个场景 <code>yard</code>。酒窖是下沉一阶，泉池门默认不加载。 镜头远时可以不画饭床形态键和远处粒子，数据层仍持有全部批次。</p>
+<h3>6. 错误</h3>
+<ul><li>表校验失败：停在标题，列出第一条错误。</li><li>存档 schema 不符或含未启用篇章：不进入院子，提示另存备份。</li><li>命令非法（家曲不足、窖位不足）：拒绝并给一句原因，不部分扣料。</li></ul>
+<h3>7. 测试钩子</h3>
+<p>Domain 的公开函数接受状态和命令，返回新状态和事件。<code>26</code> 的纯函数用例不启动 Unity。模拟器以后放在 <code>tools/sim_economy.py</code>，读同一份 JSON。</p></section><section id="20_项目目录与资源管理" class="chapter" data-title="项目目录与资源管理" tabindex="-1"><div class="chapter-kicker">文档 20</div><h2>项目目录与资源管理</h2>
+<p>版本：0.2 · 2026-10-01 主责：仓库里东西放哪、谁可以改。玩法数字的权威仍是 <code>04</code>，表结构仍是 <code>05</code>。</p>
+<h3>1. 仓库顶层</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">Nuo Brew/
+  docs/            本套分册
+  content/         JSON 配置，运行时只读
+  tools/           build_docs_viewer.py（文档阅读器）、econ_handcalc.py（经济期望值手算），以后的 sim_economy.py 与校验脚本
+  art_source/      Blender 源文件
+  game/NuoBrew/    Unity 工程</code></pre></div>
+<p><code>docs/</code> 不打进游戏包。<code>content/</code> 打进包，或由工程以只读方式引用同一份，禁止复制出第二套数字。</p>
+<h3>2. Unity 工程</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">game/NuoBrew/Assets/
+  Domain/          不引用 UnityEngine
+  Application/
+  Presentation/    场景、UI、音频挂载
+  ContentLink/     指向仓库 content/ 的加载器，不放第二份表
+  Art/             从 art_source 导出的 GLB、图集、动画
+  Tests/           纯函数测试，编辑器里跑</code></pre></div>
+<p>场景 <code>yard</code> 只放布局和锚点。耗时、价格、概率不写进 Inspector。</p>
+<h3>3. Blender 源</h3>
+<div class="code-wrap"><div class="code-label">TEXT</div><pre><code class="language-text">art_source/
+  yard/
+  rice/
+  vessels/
+  characters/
+  export/          导出的 GLB，再拷入 Unity 的 Art/</code></pre></div>
+<p>源文件不进玩家包。导出步骤见 <code>17</code> §4。</p>
+<h3>4. 归属</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">改什么</th><th scope="col">先改哪里</th></tr></thead><tbody><tr><td>规则</td><td><code>docs/</code> 主责分册</td></tr><tr><td>数字</td><td><code>04</code>，再落到 <code>content/</code></td></tr><tr><td>字段</td><td><code>05</code>，再落到 <code>content/</code></td></tr><tr><td>模型</td><td><code>art_source/</code>，再导出</td></tr><tr><td>存档字段</td><td><code>21</code>，再改 Domain</td></tr></tbody></table></div>
+<p>玩法讨论不写进场景名、材质名或临时代码注释里当成新规则。</p>
+<h3>5. 版本</h3>
+<ul><li>文档版本写在每份文首。</li><li>存档 <code>schema</code> 见 <code>21</code>。</li><li>内容表不另编号。表和 <code>04</code> 不一致时，加载失败，见 <code>05</code> §4。</li></ul>
+<h3>6. 新增一件内容的最小步骤</h3>
+<ol><li>在主责文档写清它属于哪条已有规则。</li><li>数字进 <code>04</code>，字段进 <code>05</code>。</li><li>加 JSON 行，<code>enabled</code> 按首发范围设置。</li><li>需要模型时走 <code>17</code> 的命名和预算。</li><li>给 <code>26</code> 加一条能判定它的用例。</li></ol>
+<h3>7. 禁止</h3>
+<ul><li>在 Unity 场景里手填种子价、成色公式或客人权重。</li><li>把 <code>art_source</code> 的过程文件（未应用缩放的备份、渲染缓存）提交进 <code>Art/</code>。</li><li>首发包加载 <code>enabled: false</code> 的晚照、野生稻和另外三套风格的模型。</li></ul></section><section id="21_存档与数据结构" class="chapter" data-title="存档与数据结构" tabindex="-1"><div class="chapter-kicker">文档 21</div><h2>存档与数据结构</h2>
+<p>版本：0.2 · 2026-10-01 主责：存档 schema 1 的字段、写入点、恢复和拒绝条件。存档还没落地过，0.2 增补字段后仍叫 schema 1。表字段见 <code>05</code>。对象上的玩法含义见 <code>06</code>、<code>07</code>、<code>08</code>。</p>
+<h3>1. 原则</h3>
+<ul><li>每个工时结算后写盘。崩溃后回到最近一个整点，不回到「半搅了一下」。</li><li>天气、客人、老周报价由 <code>profileId</code> 和 <code>dayIndex</code> 决定。读档不重掷。</li><li>本地一份主存档，外加一份上一整点的备份。写盘先写临时文件，再替换。</li><li>schema 只认 1。更高或更低都拒绝进入院子。</li></ul>
+<h3>2. 根结构</h3>
+<div class="code-wrap"><div class="code-label">JSON</div><pre><code class="language-json">{
+  &quot;schema&quot;: 1,
+  &quot;profileId&quot;: &quot;uuid&quot;,
+  &quot;dayIndex&quot;: 1,
+  &quot;hour&quot;: 0,
+  &quot;phase&quot;: &quot;opened&quot;,
+  &quot;money&quot;: 160,
+  &quot;renown&quot;: 15,
+  &quot;craft&quot;: 0,
+  &quot;spring&quot;: 0,
+  &quot;workshopLevel&quot;: 1,
+  &quot;skills&quot;: [],
+  &quot;koji&quot;: 4,
+  &quot;osmanthus&quot;: 0,
+  &quot;weatherToday&quot;: &quot;sun&quot;,
+  &quot;forecast&quot;: [&quot;sun&quot;, &quot;sun&quot;, &quot;cloud&quot;],
+  &quot;paddies&quot;: [],
+  &quot;granary&quot;: [],
+  &quot;batches&quot;: [],
+  &quot;products&quot;: [],
+  &quot;staff&quot;: [],
+  &quot;placement&quot;: [],
+  &quot;guests&quot;: [],
+  &quot;bulkOrder&quot;: null,
+  &quot;npcs&quot;: [],
+  &quot;tasks&quot;: [],
+  &quot;tastedToday&quot;: false,
+  &quot;wineLog&quot;: [],
+  &quot;seals&quot;: [&quot;seal_zhu&quot;, &quot;seal_shiqing&quot;, &quot;seal_yuebai&quot;],
+  &quot;codex&quot;: [],
+  &quot;seasonGoals&quot;: [],
+  &quot;tutorialStep&quot;: 1,
+  &quot;stats&quot;: {
+    &quot;soldCount&quot;: 0,
+    &quot;soldClearQ80&quot;: false,
+    &quot;loreHeard&quot;: []
+  },
+  &quot;flags&quot;: {
+    &quot;chapterSpring&quot;: false,
+    &quot;activities&quot;: false,
+    &quot;visit&quot;: false,
+    &quot;payments&quot;: false
+  }
+}</code></pre></div>
+<p><code>hour</code> 为 0 表示已经开坊、还没走过第 1 个工时。<code>phase</code>：<code>opened</code>、<code>running</code>、<code>summary</code>。<code>forecast</code> 是后三日，第 2、3 日固定晴，第 4 日按种子抽，上例的 <code>cloud</code> 只是示意。</p>
+<p><code>spring</code> 首发恒为 0。<code>flags.chapterSpring</code>、<code>activities</code>、<code>visit</code>、<code>payments</code> 首发恒为 false。存档里若为 true，而对应内容未启用，拒绝读入。</p>
+<h3>3. 子结构</h3>
+<h4>3.1 水田</h4>
+<p><code>id</code>，<code>varietyId</code> 或空，<code>stage</code>（<code>empty</code> 或 <code>G0</code>–<code>G6</code>），<code>caredToday</code>，<code>careHits</code>（关键三日 G2–G4 里完成照料的天数，0–3），<code>grade</code>（进入 G5 时定稿；之后只会因倒伏、暑伤、过熟下降），<code>lodged</code>、<code>heatHit</code>（本茬是否已因倒伏 / 暑伤降过档）。</p>
+<h4>3.2 米囤</h4>
+<p>每一斗：<code>id</code>，<code>varietyId</code>，<code>grade</code>，<code>source</code>（<code>field</code> 或 <code>shop</code>）。</p>
+<h4>3.3 批次</h4>
+<p>见 <code>07</code> §1：<code>id</code>，<code>varietyId</code>，<code>grade</code>，<code>dou</code>，<code>pathId</code>，<code>stationId</code>，<code>hoursLeft</code>，<code>hoursTotal</code>，<code>progress</code>，<code>defects</code>，<code>handmade</code>，<code>stirred</code>，<code>longAge</code>，<code>name</code>，<code>sealId</code>，<code>bottleId</code>。</p>
+<p><code>progress</code> 由已消耗工时除以 <code>hoursTotal</code> 得出，存盘是为了恢复时不重新积分。</p>
+<h4>3.4 成品</h4>
+<p><code>id</code>，<code>pathId</code> 或败酿 id，<code>varietyId</code>，<code>quality</code>，五味五项，<code>longAge</code>，<code>priceTier</code>，<code>price</code>，<code>location</code>（<code>store</code> 后仓、<code>counter</code> 展位、<code>reserved</code> 留给批购、<code>station</code> 后仓满时留在出口站），<code>name</code>，<code>sealId</code>，<code>bottleId</code>，<code>fromBatchId</code>。</p>
+<h4>3.5 人手</h4>
+<p><code>npcId</code>，<code>stationId</code> 或空，<code>hiredToday</code>（仅伙计）。</p>
+<h4>3.6 客人与批购</h4>
+<p>客人：<code>id</code>，<code>guestType</code>，<code>arriveHour</code>，<code>state</code>（<code>pending</code>、<code>bought</code>、<code>left</code>），<code>leaveReason</code>。 批购：<code>orderId</code>，<code>pathId</code>，<code>count</code>，<code>minQuality</code>，<code>dueDay</code>，<code>deposit</code>，<code>state</code>（<code>offered</code>、<code>accepted</code>、<code>done</code>、<code>late</code>）。</p>
+<h4>3.7 人物</h4>
+<p><code>npcId</code>，<code>affinity</code>，<code>heardLore</code>，<code>giftedToday</code>。晚照不出现在首发存档的 <code>npcs</code> 里。</p>
+<h4>3.9 统计与进度</h4>
+<ul><li><code>stats.soldCount</code>：累计成交件数，<code>task_sweet</code> 的触发条件。</li><li><code>stats.soldClearQ80</code>：是否卖出过成色 ≥ 80 的清酒，篇章条件之一，见 <code>11</code> §2。</li><li><code>stats.loreHeard</code>：听过旧事的人物。</li><li><code>tutorialStep</code>：首日引导走到第几步，完成后为 0。</li><li><code>codex</code>：点亮的稻种图鉴。<code>seasonGoals</code>：本季页三件目标及是否完成。<code>seals</code>：已解锁封签。</li></ul>
+<h4>3.8 布置</h4>
+<p><code>itemId</code>，<code>zoneId</code>，<code>cellX</code>，<code>cellY</code>，<code>rotation</code>。</p>
+<h3>4. 写入点</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">时机</th><th scope="col">写入</th></tr></thead><tbody><tr><td>新游戏</td><td>整份开局，来自 <code>start_state.json</code></td></tr><tr><td>开坊算完</td><td>天气、报价结果、客人、氛围、客流</td></tr><tr><td>每个工时结算</td><td>批次、田的当日照料、钱、声望、客人状态</td></tr><tr><td>蒸甑确认、搅缸、组批、上架、赠酒</td><td>对应字段，并立刻写盘</td></tr><tr><td>收工</td><td>日结结果、<code>dayIndex</code>，<code>hour</code> 回到下一日的开坊前</td></tr></tbody></table></div>
+<p>赠酒和成交必须在同一份写盘里把酒从存货移除、把钱或好感加上。不允许只加钱而酒还在。</p>
+<h3>5. 恢复</h3>
+<ul><li>启动时读主存档。主存档损坏则读备份，并提示「回到了上一个工时」。</li><li>两份都损坏：停在标题，不生成一份空白旧档覆盖。</li><li><code>summary</code> 阶段退出：下次进入先显示日结，确认后才开下一日。避免跳过三行。</li></ul>
+<h3>6. 迁移与拒绝</h3>
+<ul><li>schema 不是 1：拒绝。</li><li>出现 <code>var_wild</code>、<code>wine_spring</code>、<code>npc_wan</code> 或 <code>chapterSpring: true</code>：首发构建拒绝。</li><li>未知物品 ID：拒绝，不静默删掉。</li><li>钱、声望、好感超出 <code>04</code> 的上限时钳制到上限，并在开发日志留一行。发行包不因此中断，但测试把这种情况当成缺陷。</li></ul></section><section id="22_多平台发布与适配" class="chapter" data-title="多平台发布与适配" tabindex="-1"><div class="chapter-kicker">文档 22</div><h2>多平台发布与适配</h2>
+<p>版本：0.2 · 2026-10-01 主责：首发在哪、移植时什么不能改。帧率和分辨率见 <code>04</code> §14。操作见 <code>12</code> §7。</p>
+<h3>1. 首发</h3>
+<p>电脑端。Windows 与 macOS 都要能完成 <code>26</code> 的首日流程，发布记录至少留一台机器的帧率。键鼠是完成条件。手柄映射可以不做完。</p>
+<p>分辨率目标 1920×1080，窗口可缩小，账册在 1280×720 下仍能读完今日页。字号见 <code>12</code> §8。</p>
+<h3>2. 帧率</h3>
+<p>院景和蒸甑特写的目标都是 60。掉到 45 以下超过 3 秒，且发生在空闲张望时，记为发布缺陷。粒子和稻丛先降到 <code>04</code> §13 的上限之内，不改玩法耗时。</p>
+<h3>3. 以后的端</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">端</th><th scope="col">0.1 的要求</th></tr></thead><tbody><tr><td>移动端</td><td>不作为完成条件。触控要能表达确认、取消、推进。界面另做一版，规则不动</td></tr><tr><td>主机</td><td>不作为完成条件。手柄动作与 <code>12</code> 的三个抽象动作对齐</td></tr><tr><td>云存档</td><td>接口留在存档层之外。0.1 只写本地。同步时以当前 schema 整份上传，不合并字段</td></tr></tbody></table></div>
+<p>移植时禁止为了小屏删掉搅缸窗口或把八个工时改成现实倒计时。</p>
+<h3>4. 包体</h3>
+<p>未实测前不写死兆字节。首发包排除：晚照、野生稻、暖窑与白瓷的模型、活动配置的启用开关。排除方式是不加载 <code>enabled: false</code> 的资源，不是把规则删掉。</p>
+<h3>5. 发布门</h3>
+<p>同时满足才叫 0.1 可发布：</p>
+<ul><li><code>26</code> 的发布门用例通过。</li><li>支付、活动、拜访的开关在默认配置里为关。</li><li>一台电脑上的院景帧率记录达到 §2。</li><li>存档从第 1 日搅缸写盘后强退，再进仍是搅过的那一缸。</li></ul>
+<h3>6. 语言与输入法</h3>
+<p>界面文案是简体中文。酒名输入允许 1–8 个字，超出不让确认。不在酒名里执行任何富文本。</p></section><section id="23_活动与运营接口" class="chapter" data-title="活动与运营接口" tabindex="-1"><div class="chapter-kicker">文档 23</div><h2>活动与运营接口</h2>
+<p>版本：0.2 · 2026-10-01 主责：节日活动以后能改哪些数。默认全部关闭。客流倍率上限见 <code>04</code> §14。</p>
+<h3>1. 目的</h3>
+<p>中秋、春节一类节日以后可以用同一套酿造链做短活动：多一点桂花、多几位游客、多一枚封签。活动不新做一条工序，不缩短发酵。</p>
+<h3>2. 允许修正的项</h3>
+<p><code>activities.json</code> 的 <code>modifiers</code> 只能出现这些键：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">键</th><th scope="col">作用</th><th scope="col">限制</th></tr></thead><tbody><tr><td><code>trafficMul</code></td><td>乘在客流上</td><td>单活动 ≤ 1.2；与圩日叠乘后 ≤ 1.8</td></tr><tr><td><code>guestWeightAdd</code></td><td>给某个已有客人类型加权</td><td>不新增客人种类</td></tr><tr><td><code>supplyExtraOsmanthus</code></td><td>老周当天多几朵桂花</td><td>单价仍用 <code>04</code></td></tr><tr><td><code>sealUnlock</code></td><td>临时多一枚封签色</td><td>不改成色</td></tr><tr><td><code>fairToday</code></td><td>把当天按圩日规则算客流</td><td>与真实圩日不重复叠加</td></tr></tbody></table></div>
+<p>不允许出现：成色加成、瑕疵清除、工时倍率、基础单价、升级折扣、好感购买。</p>
+<h3>3. 预留的两个活动</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">设想</th><th scope="col">0.1</th></tr></thead><tbody><tr><td><code>act_osmanthus</code></td><td>中秋。桂花供应增加，游客权重略升</td><td><code>enabled: false</code></td></tr><tr><td><code>act_tusu</code></td><td>春节。只解锁一枚屠苏封签和一句账册文案，酒仍走现有酒路</td><td><code>enabled: false</code></td></tr></tbody></table></div>
+<p>屠苏不在 0.1 成为第五条酒路。要成为酒路，必须先改 <code>07</code> 和 <code>04</code>，而不是只开活动。</p>
+<h3>4. 时间</h3>
+<p>活动按现实日期开关，不按酒坊日。这是全作唯一读现实日期的地方：它只决定活动开没开，不让酒坊日跟着现实时间走。开启当天的下一次开坊生效，不追溯已经算好的当日客流。结束后下一开坊恢复。</p>
+<h3>5. 开关</h3>
+<p>默认配置 <code>activities: false</code>。为 false 时忽略全部活动行。测试用的打开方式只在开发构建里，发行构建没有隐藏按钮。</p>
+<h3>6. 验收</h3>
+<p>活动关闭时，28 日内的客流、价格、工时与没有活动文件时一致。见 <code>26</code>。</p></section><section id="24_拜访与分享" class="chapter" data-title="拜访与分享" tabindex="-1"><div class="chapter-kicker">文档 24</div><h2>拜访与分享</h2>
+<p>版本：0.2 · 2026-10-01 主责：以后玩家把酒和院子给别人看时，看的是什么。首发不做。帮收的数字见 <code>04</code> §14，默认关。</p>
+<h3>1. 分享什么</h3>
+<p>一张酒帖，本地先生成图片：</p>
+<ul><li>酒名、酒路、封签色</li><li>五味五条，不写公式</li><li>酒坊院的一张固定机位</li><li>玩家称呼</li></ul>
+<p>酒帖不包含存档、<code>profileId</code>、钱和声望。别人拿到图片不能变出一坛酒。</p>
+<h3>2. 异步拜访</h3>
+<p>开关 <code>visit</code>。默认关。打开之后的规则先写在这里，避免以后做成另一套游戏：</p>
+<ul><li>好友看到的是对方最近一次收工的院子快照，不能操作对方的缸。</li><li>可以留一句品酒，不超过 40 字，只显示，不改对方成色。</li><li>帮收：对方处于收稻日时，一名好友的帮忙使一块田 +1 斗。一个酒坊日最多一次，见 <code>04</code> §14。不帮蒸饭，不帮搅缸。</li></ul>
+<p>0.1 不实现账号、好友列表和快照上传。</p>
+<h3>3. 渠道</h3>
+<p>酒帖保存到本地。系统分享面板可以由玩家自己发出。游戏内不建信息流，不建评论区。</p>
+<h3>4. 不做</h3>
+<ul><li>实时联机、多人同时搅一口缸。</li><li>公会、排行榜、点赞压力、访客体力。</li><li>强制好友才能收稻。阿青的采收在单机里是完整的。</li><li>把别人的酒帖导入自己的后仓。</li></ul>
+<h3>5. 和玩法的关系</h3>
+<p>拜访关闭时，三块田的产量、发酵和前柜与 <code>04</code>、<code>06</code>、<code>07</code>、<code>08</code> 完全一致。帮收那一斗不得出现在默认存档里。</p></section><section id="25_商业化与DLC" class="chapter" data-title="商业化与 DLC" tabindex="-1"><div class="chapter-kicker">文档 25</div><h2>商业化与 DLC</h2>
+<p>版本：0.2 · 2026-10-01 主责：钱可以为什么付、不可以为为什么付。首发按买断制作。支付开关默认关。验收底线见 <code>01</code> §6。</p>
+<h3>1. 首发卖什么</h3>
+<p>一份完整单机。文、声望、酿艺点、家曲都在玩法里循环。不设广告。不设能量。</p>
+<p>豪华版若以后存在，只是外观包的捆绑，不提前解锁清酒、桂花或 4 级。</p>
+<h3>2. 可以卖的</h3>
+<p>开关 <code>payments</code> 打开之后，只允许这些商品：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">商品</th><th scope="col">内容</th></tr></thead><tbody><tr><td>封签与瓶型</td><td>颜色和网格。不改 <code>perDou</code>，不改基础价</td></tr><tr><td>院落外观</td><td><code>warm_kiln</code>、<code>porcelain_white</code> 的器物。仍走 <code>13</code> 的氛围上限</td></tr><tr><td>称呼与衣服</td><td>玩家外观。不改数值</td></tr></tbody></table></div>
+<p>季节主题包、新地区（北方黍米、西南酒）若要做，必须是新的品种和酒路行，走 <code>04</code>、<code>06</code>、<code>07</code> 的同一套规则，不能是「付费跳过一季」。</p>
+<h3>3. 不可以卖的</h3>
+<ul><li>米、曲、桂花、文、声望、酿艺点、泉华。</li><li>缩短或跳过浸、蒸、发酵、窖。</li><li>消除瑕疵、提高成色百分比的道具。</li><li>赛季通行证里的产能、客流和配方。通行证若打开，里面只能是 §2 的外观。</li><li>广告换收成。</li></ul>
+<h3>4. 接口</h3>
+<p>商品表 <code>iap.json</code> 默认不加载。字段只有 <code>id</code>、<code>kind</code>（<code>seal</code>、<code>bottle</code>、<code>style</code>、<code>outfit</code>）、<code>grantId</code>。 <code>kind</code> 出现其他值时，加载失败。 购买成功只解锁对应 <code>grantId</code>，不写钱，不写等级。</p>
+<h3>5. 验收</h3>
+<p>支付关闭时：</p>
+<ul><li>商店页不出现。</li><li>28 个酒坊日内仍能按 <code>04</code> §12 的路径升到 4 级。</li><li>甜酒酿和至少一条坛装酒路可以卖出。</li></ul>
+<p>见 <code>26</code>。</p></section><section id="26_测试用例与验收标准" class="chapter" data-title="测试用例与验收标准" tabindex="-1"><div class="chapter-kicker">文档 26</div><h2>测试用例与验收标准</h2>
+<p>版本：0.2 · 2026-10-01 主责：什么叫这版能玩、能发。用例判定的数字全部来自 <code>04</code>。不在这里发明新阈值。</p>
+<h3>1. 首发放行</h3>
+<p>全部满足：</p>
+<ul><li>§2 纯函数用例通过，不启动场景也能跑。</li><li>§3 首日流程在编辑器里走通一次。</li><li>§4 存档用例通过。</li><li>§5 关闭内容没有进包、没有进默认存档。</li><li>§6 静音和色弱下首日仍能完成。</li><li>支付、活动、拜访默认关闭。</li><li>一台电脑上的帧率记录达到 <code>22</code> §2。</li></ul>
+<h3>2. 纯函数用例</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">输入</th><th scope="col">期望</th></tr></thead><tbody><tr><td>Q1</td><td>完美、亲手、米酒、无瑕疵</td><td>成色 86+8+4 = 98</td></tr><tr><td>Q2</td><td>普通、人手蒸、甜酒酿、无瑕疵</td><td>成色 42</td></tr><tr><td>Q3</td><td>成色公式之外，瑕疵种类 3</td><td>到达去向点时必须败酿</td></tr><tr><td>Q4</td><td>成色 35</td><td>必须败酿</td></tr><tr><td>Q5</td><td>优良米酒，成色 68，平价，varietyK 1，moodK 1</td><td>单价 round(36×1.108) = 40</td></tr><tr><td>Q6</td><td>完美白糯、米酒、短陈、无瑕疵的五味</td><td>香 44，甜 44，醇 60，净 44，韵 54</td></tr><tr><td>Q7</td><td>晴天发酵 6 工时</td><td>窗口为进度 0.50 前后各 0.5 工时，即进度约 0.417–0.583</td></tr><tr><td>Q8</td><td>暑天同一批</td><td>窗口宽度 0.5 工时，中心仍是 0.50</td></tr><tr><td>Q9</td><td>窗口结束且 stirred 为 false</td><td>记 <code>stir_miss</code>，批次继续</td></tr><tr><td>Q10</td><td>雨、G5、当日未扶秧、品相优良</td><td>收工后品相普通</td></tr><tr><td>Q11</td><td>雨、G5、当日未扶秧、品相普通</td><td>品相仍是普通</td></tr><tr><td>Q12</td><td>开局 6 件按 <code>13</code> §5</td><td>A = 18，1 级客流 2，同风格 moodK 1.10</td></tr><tr><td>Q13</td><td>家曲 0</td><td>曲案拒绝开始，不扣其他材料</td></tr><tr><td>Q14</td><td>甜酒酿的站序</td><td>不含压榨、澄清、酒窖</td></tr><tr><td>Q15</td><td>普通白糯、清酒、<code>stir_miss</code></td><td>压榨时成色 42+6−12 = 36，不败酿</td></tr><tr><td>Q16</td><td>Q15 那批再提前离开澄清槽</td><td>成色 24，离开澄清槽时必须败酿</td></tr><tr><td>Q17</td><td>火候：收火低于带、其余带内、玩家确认</td><td>无瑕疵，<code>handmade</code> 为假，酿艺点 +1</td></tr><tr><td>Q18</td><td>火候：起火低于带</td><td>记 <code>steam_hard</code></td></tr><tr><td>Q19</td><td>第 1 日播白糯，G2–G4 三天都照料，晴</td><td>第 6 日开坊 G5、完美；当日割下 4 斗</td></tr><tr><td>Q20</td><td>接批购后逾期，文多于定金</td><td>声望 −2，文减去定金</td></tr><tr><td>Q21</td><td>1 级窖位 2，两批各 2 斗米酒</td><td>两批都能下窖（窖位按批计）</td></tr><tr><td>Q22</td><td>后仓已满时发酵结束</td><td>成品留在缸里，这口缸不能接新批</td></tr><tr><td>Q23</td><td>开局后仓甜酒酿，平价，同风格封签</td><td>单价 round(14 × 0.952 × 1.10) = 15，街坊 <code>tasteOk</code>（甜 60）</td></tr></tbody></table></div>
+<p>Q6 的计算：初值 40，完美行香甜醇净各 +4、韵 +6，米酒行醇 +16、韵 +8。所以醇 40+4+16 = 60，韵 40+6+8 = 54。</p>
+<h3>3. 流程用例</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">步骤</th><th scope="col">期望</th></tr></thead><tbody><tr><td>F1</td><td>新游戏第 1 日</td><td>批 A 在窗口内（进度 2.5 / 6），批 B 在蒸甑前，后仓 4 瓶甜酒酿，阿禾在蒸甑、阿青在前柜，天气晴</td></tr><tr><td>F2</td><td>搅缸再亲手蒸</td><td><code>stirred</code> 为真；玩家确认后 <code>handmade</code> 为真。交给人手则 <code>handmade</code> 为假，首日引导不结束</td></tr><tr><td>F3</td><td>蒸饭时打开账册看预报</td><td>时间不走</td></tr><tr><td>F4</td><td>把阿青调离前柜后推进到有客人</td><td>客人等 1 工时后离开，原因是柜上没有人</td></tr><tr><td>F5</td><td>收工</td><td>出现田、酒、柜三行；空的一行写「今天这里没变化」</td></tr><tr><td>F6</td><td>一块田连续照料到 G5</td><td>品相与关键三日（G2–G4）的照料天数一致，产量为该品种的固定斗数</td></tr><tr><td>F7</td><td>按首日引导走完第 1 日</td><td>至少一次成交（街坊买甜酒酿），引导 5 步全部完成</td></tr><tr><td>F8</td><td>一键收工时批 A 窗口未搅</td><td>弹出确认并列出这口缸；确认后记 <code>stir_miss</code></td></tr></tbody></table></div>
+<h3>4. 存档用例</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">id</th><th scope="col">步骤</th><th scope="col">期望</th></tr></thead><tbody><tr><td>S1</td><td>搅缸后强退</td><td>再进仍是搅过，家曲不重复扣</td></tr><tr><td>S2</td><td>成交写到一半断电（用测试钩子在加钱后、移除酒前崩溃）</td><td>恢复后钱和酒只有一份，不出现双倍</td></tr><tr><td>S3</td><td>日结界面强退</td><td>再进先看到三行</td></tr><tr><td>S4</td><td>schema 改成 2</td><td>拒绝进入</td></tr><tr><td>S5</td><td>写入 <code>npc_wan</code></td><td>首发构建拒绝</td></tr></tbody></table></div>
+<h3>5. 内容隔离</h3>
+<p>默认配置下，资源与存档中不存在：野生稻、晚照、泉池门、暖窑商品、活动启用、拜访、支付。 把 <code>chapterSpring</code> 改成 true 的存档被拒绝，而不是放进一个空门。</p>
+<h3>6. 显示</h3>
+<ul><li>静音：F2 仍能完成，图标还在。</li><li>色弱：夹生、焦糊、该搅了、倒伏不靠红绿区分。</li><li>1080p 与 1280×720：今日页不用滚动才能看见天气和在制批次。</li></ul>
+<h3>7. 模拟回归</h3>
+<p><code>tools/sim_economy.py</code> 落地之后，300 次、28 日的结果写回 <code>04</code> §12，并与手算中线对照。模拟器未落地前，不把「已经平衡」写进发布说明。</p>
+<h3>8. 缺陷等级</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">等级</th><th scope="col">例子</th><th scope="col">发布</th></tr></thead><tbody><tr><td>阻断</td><td>成色算错、存档复制钱、首日走不完、未启用内容进包</td><td>不能发</td></tr><tr><td>严重</td><td>窗口不暂停、雨天不提醒倒伏、帧率达不到 <code>22</code></td><td>不能发</td></tr><tr><td>一般</td><td>一句文案与日结事实不符、一件家具锚点偏了</td><td>可记，不挡 0.1，除非挡住认状态</td></tr><tr><td>建议</td><td>音量曲线、额外封签</td><td>不挡</td></tr></tbody></table></div>
+<h3>9. 记录</h3>
+<p>每条用例留：日期、构建号、结果、若失败则是哪一个期望值。帧率记录写明机器和分辨率。</p></section><section id="27_开发计划" class="chapter" data-title="开发计划" tabindex="-1"><div class="chapter-kicker">文档 27</div><h2>开发计划</h2>
+<p>版本：0.2 · 2026-10-01 主责：先做哪一段、做到什么就能进入下一段。不改 <code>01</code>–<code>25</code> 的规则。完成与否用 <code>26</code> 的用例说话。</p>
+<h3>1. 起点</h3>
+<p>仓库里有这套文档、文档阅读器生成脚本和经济期望值手算（<code>tools/econ_handcalc.py</code>），还没有 Unity 工程，也没有 <code>content/</code> 表。第一段工作是把 <code>04</code> 和 <code>05</code> 变成能加载的 JSON，而不是先做开放地图。</p>
+<h3>2. 落地原则</h3>
+<ul><li>先纯函数，再场景。成色、窗口、天气灾在没有模型时就要能测。</li><li>一条酒从米到柜上，比三块田同时长得好看更优先。</li><li>首发关闭的篇章、活动、拜访、支付不排进 0.1 的日程。</li><li>手感问题改表和表现，不在场景脚本里写第二套公式。</li></ul>
+<h3>3. 里程碑</h3>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">代号</th><th scope="col">名称</th><th scope="col">退出条件</th></tr></thead><tbody><tr><td>P0</td><td>契约</td><td><code>content/</code> 通过 <code>05</code> §4 的校验，开局状态与 <code>04</code> §1.1 一致</td></tr><tr><td>P1</td><td>纯函数</td><td><code>26</code> 的 Q1–Q23 在无 Unity 依赖的测试里通过</td></tr><tr><td>P2</td><td>院壳</td><td>一个灰盒院子能开坊、推进、收工，离屏批次照样扣时</td></tr><tr><td>V</td><td>首日</td><td><code>26</code> 的 F1–F5、F7 走通：搅开局那缸，蒸开局那批，卖出一瓶，看到三行日结</td></tr><tr><td>P3</td><td>田与天</td><td>三块田从 G0 到收割，雨和暑会降品，Q10、Q11、Q19、F6 通过</td></tr><tr><td>P4</td><td>蒸甑</td><td>特写三条参数写入瑕疵和形态档，时间在特写中暂停</td></tr><tr><td>P5</td><td>前柜</td><td>客人按 <code>08</code> 买或离开，批购能接、能交、能逾期</td></tr><tr><td>W</td><td>首周</td><td>连续 7 日，含一个圩日；甜酒酿能在圩日前上柜</td></tr><tr><td>P6</td><td>人与等级</td><td>阿禾自动搅缸、阿青两块一起割、委托三件、2 级能做清酒</td></tr><tr><td>P7</td><td>发布门</td><td><code>26</code> §1 全部满足，帧率有一台机器的记录</td></tr></tbody></table></div>
+<p>P0 到 P7 是 0.1 的范围。夜泉、另外三套风格、活动、拜访、支付不插入这些里程碑。</p>
+<h3>4. 各段要点</h3>
+<h4>P0–P1</h4>
+<p>JSON 与 Domain 使用同一套 ID。测试失败时先对 <code>04</code>，不要在测试里把期望值改成「看起来差不多」。</p>
+<h4>P2 与 V</h4>
+<p>灰盒用方块表示田、甑、缸、柜。V 不要求饭床形态键，但蒸饭命令必须能写 <code>handmade</code>。开局批 A 的窗口要从第 1 个可玩时刻就亮着，否则首日引导不成立。</p>
+<h4>P3–P5</h4>
+<p>田的模型可以先只有 G0、G5 两档，但数据层必须有 G0–G6。前柜先用列表成交，酒液颜色可以后补。离开原因必须是 <code>08</code> 的那几句之一。</p>
+<h4>W 与 P6</h4>
+<p>首周用来看甜酒酿和米酒会不会互相卡住窖位和现金。若 7 日内一件都卖不出，先查客流和开局库存，不先加新客人。 P6 的第三个人手是伙计，不是好友。</p>
+<h4>P7</h4>
+<p>发布门不包含移动端和主机。记录写进构建说明，不改文档里的目标帧率。</p>
+<h3>5. 0.1 之后</h3>
+<p>按 <code>01</code> §7 的顺序：暖窑与白瓷、常驻旧事的其余句子、夜泉。每一项启用前先把默认关闭的开关改成数据行，并补 <code>26</code> 的隔离用例，避免首发包被带着打开。</p>
+<h3>6. 本文不改的规则</h3>
+<p>工期、人数、外包不在这里许诺。简案里的 18–30 个月是全平台量级，不是这 10 个里程碑的日历。0.1 的日历以 P7 的用例为准，做完再估下一季。</p></section><section id="28_修订记录" class="chapter" data-title="修订记录" tabindex="-1"><div class="chapter-kicker">文档 28</div><h2>修订记录</h2>
+<p>版本：0.2 · 2026-10-01 主责：每一版改了什么、为什么改。规则本身仍以各主责分册为准。</p>
+<h3>0.2 · 2026-10-01</h3>
+<p>0.1 的骨架没动：分册划分、主责表、首发范围都保留。这一版做了五类事：修算错的数、消掉分册之间的矛盾、补上规则缺口、按客流上限重做经济、把散在别处的数字收回 <code>04</code>。</p>
+<h4>1. 算错的数</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">位置</th><th scope="col">0.1</th><th scope="col">0.2</th></tr></thead><tbody><tr><td><code>26</code> Q6 米酒五味</td><td>醇 64、韵 58</td><td>醇 60、韵 54（40 + 完美 4 + 米酒 16；40 + 6 + 8）</td></tr><tr><td><code>04</code> §12 甜酒酿</td><td>「完美亲手蒸成色 86」</td><td>应为 86 + 8 = 94。整段手算已重写</td></tr><tr><td><code>04</code> §3.1 一季几茬</td><td>最多 4 茬</td><td>第 1 日播下可在第 6、11、16、21、26 日割，最多 5 茬</td></tr><tr><td><code>04</code> §1.1 开局批 A</td><td>已进行 3 工时，「窗口从这一工时开始」</td><td>窗口中心在 3 工时，起点应是 2.5。改为已进行 2.5 工时，窗口刚好打开</td></tr></tbody></table></div>
+<h4>2. 分册之间的矛盾</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">事项</th><th scope="col">冲突</th><th scope="col">0.2 的处理</th></tr></thead><tbody><tr><td>桂花何时扣</td><td><code>06</code> §4 说进浸缸时扣，<code>07</code> §6 说在调配站扣</td><td>统一在调配站扣</td></tr><tr><td>桂花曲</td><td><code>00</code>、<code>02</code> 提到桂花曲，<code>04</code>、<code>07</code> 没有这种东西</td><td>删去。首发只有家曲</td></tr><tr><td>火候瑕疵方向</td><td><code>03</code> 参数表写「收火偏小 → 烤焦」，判定规则却写「收火偏大 → 焦糊」，起火偏小又不记瑕疵</td><td>重排参数表：起火 / 稳火偏低夹生，三条偏高焦糊，收火偏低只出带不记瑕疵</td></tr><tr><td>品相统计日</td><td>看 G3–G5 三天，但 G5 当天割掉就没有 G5 的收工</td><td>改为关键三日 G2–G4，进入 G5 时定稿</td></tr><tr><td>首日引导 vs 阿禾</td><td>开局阿禾在发酵房会自动搅缸，引导第一步却要玩家亲手搅</td><td>开局阿禾改在蒸甑，阿青改在前柜</td></tr><tr><td>声望的作用</td><td><code>10</code> 说「客人更肯上门」，<code>04</code> 说去向「客群」，但客流公式里没有声望</td><td>声望只做升级门槛，不进客流和售价</td></tr><tr><td>天气规则</td><td>「暑不与雨同一天，抽到暑的雨日改为晴并记暑」——一天只抽一种天气，这句不成立</td><td>删去；连续雨的规则改写清楚</td></tr><tr><td>封签风格</td><td><code>13</code> 的 <code>moodK</code> 要用封签的风格，但封签只定义了颜色</td><td><code>products_visual.json</code> 的封签带 <code>styleId</code>，开局三色都是 <code>water_glow</code></td></tr><tr><td><code>01</code> 第一季</td><td>「桂花酿若未在 3 级做完则补齐活动变体」读不通</td><td>改为暖窑 / 白瓷、中秋活动、常驻短篇、5 级接口</td></tr><tr><td>Blender 轴向</td><td><code>03</code>、<code>17</code> 写「Y 向前」</td><td>Blender 保持 Z 向上，导出 glTF 勾选 +Y Up</td></tr></tbody></table></div>
+<h4>3. 补上的规则</h4>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">缺口</th><th scope="col">0.2 的规则</th><th scope="col">主责</th></tr></thead><tbody><tr><td>玩家本人算不算人手</td><td><strong>当家不占名额</strong>，不能站柜、割稻、拌曲、压榨；只做亲手蒸（蒸甑须有人在岗）、搅缸、照料</td><td><code>16</code> §3</td></tr><tr><td>首日无酒可卖</td><td>0.1 首日最早的一坛要到第 9 工时才出窖，超过一天的 8 工时，「首日成交」做不到。开局后仓放 4 瓶普通甜酒酿</td><td><code>04</code> §1.1</td></tr><tr><td>澄清后掉到败酿线下</td><td><code>rush_clear</code> 在压榨之后才可能出现，0.1 没有拦截点</td><td>清酒离开澄清槽时再判一次</td></tr><tr><td>批购白拿定金</td><td>0.1 逾期「定金不追回」，接了不交就是白赚 20–40 文</td><td>逾期退回定金，声望 −2</td></tr><tr><td>后仓满了怎么办</td><td>未定义</td><td>成品留在出口站，不坏，但占着那一站</td></tr><tr><td>窖位按坛还是按批</td><td>未定义；按坛算的话 1 级一批就占满</td><td>按批计</td></tr><tr><td>时间怎么走</td><td>只说按推进走，没说其他操作耗不耗时</td><td>只有推进走时间；新增一键收工</td></tr><tr><td>存档缺字段</td><td>委托触发、篇章条件、引导进度、图鉴、封签无处可存</td><td><code>21</code> 增补 <code>stats</code>、<code>tutorialStep</code>、<code>codex</code>、<code>seasonGoals</code>、<code>seals</code> 等</td></tr><tr><td>「识天」技能</td><td>描述是「预报从 3 日变为仍是 3 日」</td><td>田边显示动词，倒伏 / 暑伤提醒提前到收工前 2 工时</td></tr></tbody></table></div>
+<h4>4. 经济重算</h4>
+<p>0.1 的手算把三茬 36 斗全按米酒卖出算收入。但 1 级每天只有 2 位客人、每位只买 1 件，其中一半多是只要甜酒酿的街坊。米酒根本卖不完。收入的上限是<strong>客流</strong>，不是产量。</p>
+<p>0.2 新增 <code>tools/econ_handcalc.py</code>，逐日算期望值。按 0.1 的升级花费（220 / 380 / 640），中线第 21 日就到 4 级，比 <code>10</code> 想要的节奏快一周。所以调整为：</p>
+<div class="table-wrap" tabindex="0" aria-label="可横向滚动的表格"><table><thead><tr><th scope="col">项</th><th scope="col">0.1</th><th scope="col">0.2</th></tr></thead><tbody><tr><td>升级花费</td><td>220 / 380 / 640，合计 1240</td><td>280 / 540 / 860，合计 1680</td></tr><tr><td>声望门槛</td><td>25 / 40 / 55</td><td>25 / 45 / 65</td></tr><tr><td>中线到级</td><td>—</td><td>第 7 / 15 / 25 日</td></tr></tbody></table></div>
+<p>详见 <code>04</code> §12。</p>
+<h4>5. 数字收回 <code>04</code></h4>
+<p>这些数字原来写在别的分册里，违反「数字只在 <code>04</code>」的约定，0.2 搬进 <code>04</code>，原处改成引用：</p>
+<ul><li>批购木牌各级的酒路、件数、交期、定金、成色要求（原 <code>08</code> §5）→ <code>04</code> §10.5</li><li>常驻委托的成色要求（原 <code>16</code> §6）→ <code>04</code> §10.5</li><li>客人到达工时、<code>tasteOk</code> 阈值、在意的一味（原 <code>08</code> §3–§4）→ <code>04</code> §10.2</li><li>氛围与客流公式的全部系数（原 <code>13</code> §3–§4）→ <code>04</code> §10.1；<code>13</code> 只保留公式结构和符号</li></ul>
+<p>新增配套：<code>05</code> 加了 <code>economy.json</code>、<code>iap.json</code>、封签字段；<code>26</code> 加了 Q15–Q23、F7、F8。</p>
+<h4>6. 替你先定的取舍（不同意可以改回）</h4>
+<ol><li><strong>当家不占人手名额。</strong> 另一种做法是把玩家也当一个可派的人手，那会让 1 级多出 50% 劳力，<code>04</code> §12 要重算。</li><li><strong>开局后仓 4 瓶甜酒酿。</strong> 也可以改成首日成功标准不要求成交。</li><li><strong>逾期退定金。</strong> 也可以改成「接单不收定金，交齐一次结清」。</li><li><strong>普通米带一种瑕疵就败酿</strong>（42 − 12 = 30 &lt; 36）。保留了 0.1 的数值，并在 <code>04</code> §7 写明这是有意的。如果嫌太狠，把败酿线降到 30 即可。</li><li><strong>升级花费上调到 1680。</strong> 依据是期望值模型，不是试玩。</li></ol>
+<h4>7. 还没做的</h4>
+<ul><li><strong>器物价格</strong>没有定。手算显示布置是很大的杠杆（A 从 18 到 36 能让 4 级提前约 7 日），必须先定价再重跑 §12。见 <code>09</code> §7。</li><li>蒙特卡洛模拟器 <code>tools/sim_economy.py</code> 仍未落地，<code>04</code> §12 只是期望值。</li><li>以上全部未经实机试玩。</li></ul></section></div>
+      <div id="no-results" role="status">
+        <strong>没有找到匹配内容</strong>
+        请尝试更短的关键词，或清空搜索后浏览全部章节。
+      </div>
+      <footer>本页由 <code>tools/build_docs_viewer.py</code> 生成；所有正文、样式与脚本均已嵌入，可完全离线阅读。</footer>
+    </div>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+      const body = document.body;
+      const chapters = [...document.querySelectorAll(".chapter")];
+      const links = [...document.querySelectorAll(".nav-link")];
+      const search = document.getElementById("search");
+      const searchStatus = document.getElementById("search-status");
+      const noResults = document.getElementById("no-results");
+      const previousButton = document.getElementById("previous");
+      const nextButton = document.getElementById("next");
+      const showAllButton = document.getElementById("show-all");
+      const mobileNavButton = document.getElementById("mobile-nav-button");
+      const navScrim = document.getElementById("nav-scrim");
+      let showAll = false;
+      let visibleChapter = chapters[0];
+
+      const decodeHash = () => {
+        try { return decodeURIComponent(location.hash.slice(1)); }
+        catch (_) { return ""; }
+      };
+
+      const chapterForId = (id) => chapters.find((chapter) => chapter.id === id);
+      const linkForChapter = (chapter) =>
+        links.find((link) => decodeURIComponent(link.hash.slice(1)) === chapter.id);
+
+      function closeMobileNav() {
+        body.classList.remove("nav-open");
+        mobileNavButton.setAttribute("aria-expanded", "false");
+      }
+
+      function updateNavigation(chapter) {
+        visibleChapter = chapter || chapters[0];
+        links.forEach((link) => {
+          const active = link === linkForChapter(visibleChapter);
+          link.classList.toggle("active", active);
+          if (active) link.setAttribute("aria-current", "page");
+          else link.removeAttribute("aria-current");
+        });
+        const index = chapters.indexOf(visibleChapter);
+        previousButton.disabled = showAll || index <= 0;
+        nextButton.disabled = showAll || index < 0 || index >= chapters.length - 1;
+      }
+
+      function selectChapter({ focus = false, scroll = false } = {}) {
+        showAll = false;
+        body.classList.remove("show-all");
+        showAllButton.textContent = "展开全文";
+        showAllButton.setAttribute("aria-pressed", "false");
+        const selected = chapterForId(decodeHash()) || chapters[0];
+        chapters.forEach((chapter) => chapter.classList.toggle("active", chapter === selected));
+        updateNavigation(selected);
+        if (scroll) window.scrollTo({ top: 0, behavior: "auto" });
+        if (focus) selected.focus({ preventScroll: true });
+      }
+
+      function navigateBy(offset) {
+        const current = chapters.indexOf(visibleChapter);
+        const target = chapters[current + offset];
+        if (!target) return;
+        search.value = "";
+        filterChapters();
+        location.hash = target.id;
+      }
+
+      function filterChapters() {
+        const query = search.value.trim().toLocaleLowerCase("zh-CN");
+        if (!query) {
+          links.forEach((link) => { link.hidden = false; });
+          searchStatus.textContent = "";
+          noResults.style.display = "none";
+          if (showAll) {
+            chapters.forEach((chapter) => chapter.classList.remove("active"));
+            updateNavigation(visibleChapter);
+          } else {
+            selectChapter();
+          }
+          return;
+        }
+
+        showAll = false;
+        body.classList.remove("show-all");
+        showAllButton.textContent = "展开全文";
+        showAllButton.setAttribute("aria-pressed", "false");
+        const matches = [];
+        chapters.forEach((chapter, index) => {
+          const haystack = `${chapter.dataset.title} ${chapter.textContent}`
+            .toLocaleLowerCase("zh-CN");
+          const matched = haystack.includes(query);
+          links[index].hidden = !matched;
+          chapter.classList.toggle("active", false);
+          if (matched) matches.push(chapter);
+        });
+        searchStatus.textContent = matches.length
+          ? `找到 ${matches.length} 个相关章节`
+          : "没有匹配章节";
+        noResults.style.display = matches.length ? "none" : "block";
+        if (matches[0]) {
+          matches[0].classList.add("active");
+          updateNavigation(matches[0]);
+        } else {
+          links.forEach((link) => {
+            link.classList.remove("active");
+            link.removeAttribute("aria-current");
+          });
+          previousButton.disabled = true;
+          nextButton.disabled = true;
+        }
+      }
+
+      window.addEventListener("hashchange", () => {
+        search.value = "";
+        links.forEach((link) => { link.hidden = false; });
+        searchStatus.textContent = "";
+        noResults.style.display = "none";
+        selectChapter({ focus: true, scroll: true });
+        closeMobileNav();
+      });
+
+      document.addEventListener("click", (event) => {
+        const anchor = event.target.closest('a[href^="#"]');
+        if (!anchor) return;
+        const id = decodeURIComponent(anchor.hash.slice(1));
+        if (!chapterForId(id)) return;
+        event.preventDefault();
+        search.value = "";
+        if (decodeHash() === id) {
+          filterChapters();
+          selectChapter({ focus: true, scroll: true });
+        } else {
+          location.hash = id;
+        }
+      });
+
+      search.addEventListener("input", filterChapters);
+      previousButton.addEventListener("click", () => navigateBy(-1));
+      nextButton.addEventListener("click", () => navigateBy(1));
+      document.getElementById("print").addEventListener("click", () => window.print());
+      showAllButton.addEventListener("click", () => {
+        search.value = "";
+        links.forEach((link) => { link.hidden = false; });
+        searchStatus.textContent = "";
+        noResults.style.display = "none";
+        showAll = !showAll;
+        body.classList.toggle("show-all", showAll);
+        showAllButton.textContent = showAll ? "按章节阅读" : "展开全文";
+        showAllButton.setAttribute("aria-pressed", String(showAll));
+        if (showAll) {
+          chapters.forEach((chapter) => chapter.classList.remove("active"));
+          updateNavigation(visibleChapter);
+          window.scrollTo({ top: 0, behavior: "auto" });
+        } else {
+          selectChapter({ scroll: true });
+        }
+      });
+
+      mobileNavButton.addEventListener("click", () => {
+        const open = body.classList.toggle("nav-open");
+        mobileNavButton.setAttribute("aria-expanded", String(open));
+        if (open) search.focus();
+      });
+      navScrim.addEventListener("click", closeMobileNav);
+
+      document.addEventListener("keydown", (event) => {
+        const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName);
+        if (event.key === "/" && !typing) {
+          event.preventDefault();
+          search.focus();
+        } else if (event.key === "Escape") {
+          if (search.value) {
+            search.value = "";
+            filterChapters();
+            search.focus();
+          }
+          closeMobileNav();
+        } else if (event.altKey && event.key === "ArrowLeft") {
+          event.preventDefault();
+          navigateBy(-1);
+        } else if (event.altKey && event.key === "ArrowRight") {
+          event.preventDefault();
+          navigateBy(1);
+        }
+      });
+
+      selectChapter();
+    })();
+  </script>
+</body>
+</html>
